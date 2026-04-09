@@ -40,10 +40,9 @@
       .team-head h3 { margin: 0; font-size: 17px; letter-spacing: 0.04em; }
       .badge { background: #e7f9fa; color: #1faeb5; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; }
       .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .member { padding: 10px 12px; border-radius: 16px; background: rgba(255,255,255,0.92); border: 1px solid #ebf1f4; min-height: 92px; }
-      .member strong { display: block; font-size: 14px; margin-bottom: 6px; }
-      .member span { display: block; font-size: 11px; color: #74838c; margin-bottom: 8px; }
-      .status-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 30px; padding: 0 10px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap; width: fit-content; }
+      .member { display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,0.92); border: 1px solid #ebf1f4; min-height: 0; }
+      .member strong { display: block; font-size: 14px; }
+      .status-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 0 10px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap; width: fit-content; }
       .office { background: #edf7ef; color: #1f7a43; }
       .remote { background: #e8f9fb; color: #12a7b0; }
       .vacation { background: #fff3e2; color: #ba6b00; }
@@ -71,7 +70,7 @@
     <div class="app">
       <section class="hero">
         <div>
-          <h1>KHK Working Board</h1>
+          <h1>Working Board</h1>
           <p>아이폰에서 스크롤 부담을 줄이고 한 화면에 팀 상태를 최대한 다 보이게 맞춘 버전입니다.</p>
         </div>
         <div class="today-card">
@@ -229,7 +228,6 @@
                 return `
                   <div class="member">
                     <strong>${member.name}</strong>
-                    <span>${detail}</span>
                     <div class="status-pill ${meta.className}">${meta.label}${member.status === 'timeoff' && member.timeNote ? ` (${member.timeNote})` : ''}</div>
                   </div>
                 `;
