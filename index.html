@@ -10,15 +10,16 @@
       @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap');
       * { box-sizing: border-box; }
       body { margin: 0; font-family: 'Cabinet Grotesk', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #eef2f4 0%, #dde5e8 100%); color: #27343c; }
-      .app { max-width: 1160px; margin: 0 auto; padding: 20px 16px 44px; }
-      .hero { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 18px; }
-      .hero h1 { margin: 0; font-size: 38px; letter-spacing: -0.06em; }
-      .hero p { margin: 8px 0 0; color: #74838c; font-size: 15px; }
-      .today-card { min-width: 200px; padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.76); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 18px 30px rgba(52,70,79,0.08); }
-      .today-card strong { display: block; font-size: 12px; letter-spacing: 0.16em; color: #2cced2; }
-      .today-card span { display: block; margin-top: 6px; font-size: 16px; font-weight: 700; }
-      .layout { display: grid; grid-template-columns: 340px 1fr 320px; gap: 16px; align-items: start; }
-      .glass { background: rgba(255,255,255,0.68); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.76); border-radius: 28px; box-shadow: 0 20px 34px rgba(52,70,79,0.08); }
+      .app { max-width: 480px; margin: 0 auto; min-height: 100vh; padding: 16px 14px 110px; }
+      .hero { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 16px; }
+      .hero h1 { margin: 0; font-size: 30px; letter-spacing: -0.06em; }
+      .hero p { margin: 6px 0 0; color: #74838c; font-size: 14px; line-height: 1.45; }
+      .today-card { padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,0.76); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 18px 30px rgba(52,70,79,0.08); text-align: right; }
+      .today-card strong { display: block; font-size: 11px; letter-spacing: 0.16em; color: #2cced2; }
+      .today-card span { display: block; margin-top: 4px; font-size: 14px; font-weight: 700; }
+      .glass { background: rgba(255,255,255,0.68); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.76); border-radius: 26px; box-shadow: 0 20px 34px rgba(52,70,79,0.08); }
+      .screen { display: none; }
+      .screen.active { display: block; }
       .panel { padding: 18px; }
       .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
       .panel-title h2 { margin: 0; font-size: 22px; letter-spacing: -0.05em; }
@@ -26,7 +27,7 @@
       .field { margin-bottom: 12px; }
       .field label { display: block; font-size: 13px; color: #74838c; margin-bottom: 6px; }
       .field input, .field select { width: 100%; min-height: 48px; border: 1px solid #d9e3e7; border-radius: 16px; padding: 0 14px; font: inherit; background: rgba(255,255,255,0.88); color: #27343c; }
-      .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+      .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
       button { border: none; border-radius: 16px; min-height: 48px; padding: 0 16px; font: inherit; font-weight: 800; cursor: pointer; }
       .primary { background: #2cced2; color: white; }
       .secondary { background: #e7f9fa; color: #22aab0; }
@@ -39,10 +40,10 @@
       .team-head h3 { margin: 0; font-size: 20px; letter-spacing: 0.04em; }
       .badge { background: #e7f9fa; color: #1faeb5; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 800; }
       .member-list { display: grid; gap: 10px; }
-      .member { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.92); border: 1px solid #ebf1f4; }
+      .member { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.92); border: 1px solid #ebf1f4; }
       .member strong { display: block; font-size: 16px; }
       .member span { font-size: 13px; color: #74838c; }
-      .status-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+      .status-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap; width: fit-content; }
       .office { background: #edf7ef; color: #1f7a43; }
       .remote { background: #e8f9fb; color: #12a7b0; }
       .vacation { background: #fff3e2; color: #ba6b00; }
@@ -50,8 +51,7 @@
       .timeoff { background: #f0eaff; color: #6d28d9; }
       .alert-box { display:none; margin-bottom: 12px; padding: 14px 16px; border-radius: 18px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; font-size: 14px; line-height: 1.5; }
       .alert-box.show { display:block; }
-      .admin-summary { display: grid; gap: 12px; }
-      .metric { padding: 18px; border-radius: 22px; background: rgba(255,255,255,0.82); border: 1px solid rgba(255,255,255,0.8); }
+      .metric { padding: 18px; border-radius: 22px; background: rgba(255,255,255,0.82); border: 1px solid rgba(255,255,255,0.8); margin-bottom: 12px; }
       .metric small { display: block; color: #74838c; font-size: 12px; letter-spacing: 0.12em; }
       .metric strong { display: block; margin-top: 8px; font-size: 32px; letter-spacing: -0.05em; }
       .metric span { color: #5c6b74; font-size: 14px; }
@@ -62,18 +62,9 @@
       .admin-item span { color:#74838c; font-size:13px; }
       .admin-count { margin-top: 6px; font-size: 28px; font-weight: 800; letter-spacing: -0.05em; }
       .empty { color: #98a2b3; font-size: 14px; }
-      @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; } }
-      @media (max-width: 640px) {
-        .app { padding: 16px 12px 34px; }
-        .hero { display: block; }
-        .hero h1 { font-size: 30px; }
-        .today-card { margin-top: 14px; min-width: 0; }
-        .panel { padding: 16px; }
-        .member { grid-template-columns: 1fr; align-items: start; }
-        .status-pill { width: fit-content; }
-        .btn-row { flex-direction: column; }
-        button { width: 100%; }
-      }
+      .bottom-nav { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: calc(100% - 24px); max-width: 452px; background: rgba(255,255,255,0.92); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 18px 30px rgba(52,70,79,0.12); border-radius: 24px; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .bottom-nav button { min-height: 56px; background: transparent; color: #5d6b74; border-radius: 18px; }
+      .bottom-nav button.active { background: #2cced2; color: white; }
     </style>
   </head>
   <body>
@@ -81,7 +72,7 @@
       <section class="hero">
         <div>
           <h1>KHK Working Board</h1>
-          <p>모바일에서 바로 접속해서 오늘 팀별 근무 상태를 확인하는 반응형 웹앱입니다.</p>
+          <p>아이폰에서 바로 확인할 수 있게 한 번에 한 화면만 보이는 모바일 구조로 정리했습니다.</p>
         </div>
         <div class="today-card">
           <strong>TODAY</strong>
@@ -89,33 +80,35 @@
         </div>
       </section>
 
-      <section class="layout">
-        <aside class="glass panel">
-          <div class="panel-title"><h2>WORKING SCHEDULE</h2><span>UPDATE</span></div>
-          <div class="field"><label for="teamSelect">팀</label><select id="teamSelect"></select></div>
-          <div class="field"><label for="nameSelect">이름</label><select id="nameSelect"></select></div>
-          <div class="field"><label for="statusSelect">근무 상태</label><select id="statusSelect"><option value="office">출근</option><option value="remote">재택</option><option value="vacation">연차</option><option value="half-am">오전반차</option><option value="half-pm">오후반차</option><option value="timeoff">반반차 (시간 표시)</option></select></div>
-          <div class="field" id="timeField" style="display:none;"><label for="timeInput">시간 표시</label><input id="timeInput" placeholder="예: 15:00~17:00" /></div>
-          <div class="btn-row"><button class="primary" id="saveBtn">저장</button><button class="secondary" id="resetBtn">초기화</button></div>
-          <div class="helper">팀 선택 후 이름 리스트에서 선택하고 상태를 저장하면 바로 반영됩니다.</div>
-        </aside>
+      <section class="screen active glass panel" id="screen-schedule">
+        <div class="panel-title"><h2>WORKING SCHEDULE</h2><span>UPDATE</span></div>
+        <div class="field"><label for="teamSelect">팀</label><select id="teamSelect"></select></div>
+        <div class="field"><label for="nameSelect">이름</label><select id="nameSelect"></select></div>
+        <div class="field"><label for="statusSelect">근무 상태</label><select id="statusSelect"><option value="office">출근</option><option value="remote">재택</option><option value="vacation">연차</option><option value="half-am">오전반차</option><option value="half-pm">오후반차</option><option value="timeoff">반반차 (시간 표시)</option></select></div>
+        <div class="field" id="timeField" style="display:none;"><label for="timeInput">시간 표시</label><input id="timeInput" placeholder="예: 15:00~17:00" /></div>
+        <div class="btn-row"><button class="primary" id="saveBtn">저장</button><button class="secondary" id="resetBtn">초기화</button></div>
+        <div class="helper">팀 선택 후 이름 리스트에서 선택하고 상태를 저장하면 바로 반영됩니다.</div>
+      </section>
 
-        <main class="glass panel">
-          <div class="team-tabs" id="teamTabs"></div>
-          <div id="teamBoard"></div>
-        </main>
+      <section class="screen glass panel" id="screen-status">
+        <div class="team-tabs" id="teamTabs"></div>
+        <div id="teamBoard"></div>
+      </section>
 
-        <aside class="glass panel">
-          <div class="panel-title"><h2>관리자 페이지</h2><span>MONTHLY</span></div>
-          <div class="alert-box" id="alertBox"></div>
-          <div class="admin-summary">
-            <div class="metric"><small>총 등록 인원</small><strong id="memberCount">0</strong><span>전체 팀 기준 등록된 인원 수</span></div>
-          </div>
-          <div class="admin-tabs" id="adminTabs"></div>
-          <div class="admin-list" id="adminList"></div>
-        </aside>
+      <section class="screen glass panel" id="screen-admin">
+        <div class="panel-title"><h2>관리자 페이지</h2><span>MONTHLY</span></div>
+        <div class="alert-box" id="alertBox"></div>
+        <div class="metric"><small>총 등록 인원</small><strong id="memberCount">0</strong><span>전체 팀 기준 등록된 인원 수</span></div>
+        <div class="admin-tabs" id="adminTabs"></div>
+        <div class="admin-list" id="adminList"></div>
       </section>
     </div>
+
+    <nav class="bottom-nav">
+      <button class="active" data-screen="screen-schedule">WORKING<br/>SCHEDULE</button>
+      <button data-screen="screen-status">TEAM<br/>STATUS</button>
+      <button data-screen="screen-admin">ADMIN</button>
+    </nav>
 
     <script>
       const teams = ['SALES TEAM','MKT TEAM','FINANCE TEAM','S&OP TEAM','LOGISTICS TEAM','HR TEAM','COUNTRY MANAGER'];
@@ -149,7 +142,7 @@
         .replace('S&OP TEAM', 'S&OP')
         .replace('LOGISTICS TEAM', 'LOGISTICS')
         .replace('HR TEAM', 'HR');
-      const storageKey = 'khk-work-status-demo-v3';
+      const storageKey = 'khk-work-status-demo-v4';
       const monthKey = () => {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -166,6 +159,8 @@
       let currentTeam = teams[0];
       let currentAdminTab = null;
 
+      const screens = document.querySelectorAll('.screen');
+      const navButtons = document.querySelectorAll('.bottom-nav button');
       const teamSelect = document.getElementById('teamSelect');
       const nameSelect = document.getElementById('nameSelect');
       const statusSelect = document.getElementById('statusSelect');
@@ -177,6 +172,10 @@
       const adminList = document.getElementById('adminList');
       const alertBox = document.getElementById('alertBox');
 
+      const showScreen = (id) => {
+        screens.forEach(screen => screen.classList.toggle('active', screen.id === id));
+        navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === id));
+      };
       const persist = () => localStorage.setItem(storageKey, JSON.stringify(state));
       const memberCount = () => teams.reduce((sum, team) => sum + state.members[team].length, 0);
       const getMonthBucket = () => {
@@ -298,6 +297,7 @@
         renderTeamBoard();
         renderAdminTabs();
         renderAdmin();
+        showScreen('screen-status');
       };
 
       statusSelect.addEventListener('change', () => {
@@ -309,6 +309,7 @@
         localStorage.removeItem(storageKey);
         location.reload();
       });
+      navButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
 
       renderTeamOptions();
       renderNameOptions();
