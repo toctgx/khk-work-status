@@ -169,7 +169,8 @@
           return acc;
         }, {}),
         monthlyCounts: {},
-        dailyLogs: {}
+        dailyLogs: {},
+        lastResetDate: null
       };
       const saved = localStorage.getItem(storageKey);
       const state = saved ? JSON.parse(saved) : initialState;
@@ -231,6 +232,15 @@
         if (!state.dailyLogs[key]) state.dailyLogs[key] = {};
         state.dailyLogs[key][`${team}__${name}`] = { name, team, status };
       };
+      const resetDailyStatusesIfNeeded = () => {
+        const today = todayKey();
+        if (state.lastResetDate === today) return;
+        teams.forEach(team => {
+          state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
+        });
+        state.lastResetDate = today;
+        persist();
+      };
       const monthlyList = () => Object.values(getMonthBucket()).sort((a, b) => a.team.localeCompare(b.team) || a.name.localeCompare(b.name));
       const weeklyRemoteLimit = () => {
         const now = new Date();
@@ -285,7 +295,7 @@
       const renderAdminTabs = () => {
         adminTabs.innerHTML = adminViews.map(tab => `<button class="admin-tab ${tab.key === currentAdminTab ? 'active' : ''}" data-admin="${tab.key}">${tab.label}</button>`).join('');
         adminTabs.querySelectorAll('[data-admin]').forEach(btn => btn.addEventListener('click', () => {
-          currentAdminTab = currentAdminTab === btn.dataset.admin ? null : btn.dataset.admin;
+          currentAdminTab = btn.dataset.admin;
           renderAdminTabs();
           renderAdmin();
         }));
@@ -366,6 +376,7 @@
       });
       navButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
 
+      resetDailyStatusesIfNeeded();
       renderTeamOptions();
       renderNameOptions();
       renderTeamTabs();
