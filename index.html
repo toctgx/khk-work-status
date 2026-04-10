@@ -11,8 +11,20 @@
       * { box-sizing: border-box; }
       body { margin: 0; font-family: 'Cabinet Grotesk', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%); color: #1f1f1f; overflow: hidden; }
       .app { max-width: 560px; margin: 0 auto; min-height: 100vh; height: 100vh; padding: 10px 10px 94px; display: flex; flex-direction: column; overflow: hidden; }
-      .hero { display: grid; grid-template-columns: 1fr; align-items: stretch; gap: 8px; margin-bottom: 8px; flex: 0 0 auto; }
-      .hero-title { display: none; }
+      .hero { display: grid; grid-template-columns: 1fr auto; align-items: stretch; gap: 8px; margin-bottom: 8px; flex: 0 0 auto; }
+      .hero-visual { position: relative; min-height: 132px; border-radius: 22px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 10px 22px rgba(0, 0, 0, 0.05); overflow: hidden; }
+      .splash-yellow { position: absolute; right: 18px; top: 8px; width: 120px; height: 78px; background: #f7b52a; border-radius: 56% 44% 55% 45% / 42% 62% 38% 58%; transform: rotate(-12deg); }
+      .ketchup-line { position: absolute; border: 6px solid #c91f28; border-radius: 24px; opacity: 0.94; }
+      .ketchup-line.one { inset: 10px 14px auto auto; width: 126px; height: 78px; transform: rotate(18deg); border-left-color: transparent; border-bottom-color: transparent; }
+      .ketchup-dot { position: absolute; border-radius: 50%; background: #d92d32; }
+      .ketchup-dot.one { width: 14px; height: 14px; right: 56px; bottom: 24px; }
+      .ketchup-dot.two { width: 10px; height: 10px; right: 40px; bottom: 18px; }
+      .ketchup-bottle { position: absolute; right: 28px; top: 16px; width: 138px; height: 46px; transform: rotate(-24deg); background: linear-gradient(180deg, #d92d32 0%, #b71822 100%); border-radius: 22px 18px 18px 22px; box-shadow: 0 10px 20px rgba(185,24,34,0.22); }
+      .ketchup-bottle::before { content: ""; position: absolute; left: -20px; top: 10px; width: 28px; height: 26px; background: linear-gradient(180deg, #b71822 0%, #991018 100%); clip-path: polygon(100% 0, 100% 100%, 0 50%); }
+      .ketchup-bottle::after { content: ""; position: absolute; right: 14px; top: 8px; width: 34px; height: 30px; border-radius: 10px; background: #fff8ef; box-shadow: inset 0 0 0 2px #d7d7d7; }
+      .kraft-logo { position: absolute; left: 18px; bottom: 18px; font-size: 18px; font-weight: 800; letter-spacing: -0.04em; }
+      .kraft-logo .kraft { color: #21498b; }
+      .kraft-logo .heinz { color: #c91f28; font-style: italic; margin-left: 2px; }
       .today-card { padding: 12px 12px; min-width: 108px; border-radius: 18px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04); text-align: right; }
       .today-card strong { display: block; font-size: 10px; letter-spacing: 0.16em; color: #d92d32; }
       .today-card span { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; }
@@ -74,7 +86,8 @@
       .bottom-nav button { min-height: 52px; background: transparent; color: #7a7a7a; border-radius: 16px; font-size: 13px; line-height: 1.15; }
       .bottom-nav button.active { background: linear-gradient(180deg, #de2f36 0%, #cf242d 100%); color: white; }
       @media (max-width: 460px) {
-        .hero, .metrics-grid, .field-grid, .member-grid, .btn-row { grid-template-columns: 1fr; }
+        .metrics-grid, .field-grid, .member-grid, .btn-row { grid-template-columns: 1fr; }
+        .hero { grid-template-columns: 1fr; }
         .app { padding-bottom: 90px; }
         .member-grid { max-height: calc(100vh - 320px); }
         .admin-list { max-height: calc(100vh - 320px); }
@@ -85,6 +98,14 @@
     <div class="toast" id="toast">저장되었습니다.</div>
     <div class="app">
       <section class="hero">
+        <div class="hero-visual" aria-hidden="true">
+          <div class="splash-yellow"></div>
+          <div class="ketchup-line one"></div>
+          <div class="ketchup-bottle"></div>
+          <div class="ketchup-dot one"></div>
+          <div class="ketchup-dot two"></div>
+          <div class="kraft-logo"><span class="kraft">Kraft</span><span class="heinz">Heinz</span></div>
+        </div>
         <div class="today-card">
           <strong>TODAY</strong>
           <span id="todayLabel"></span>
