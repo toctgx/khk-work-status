@@ -9,7 +9,7 @@
     <style>
       @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap');
       * { box-sizing: border-box; }
-      body { margin: 0; font-family: 'Cabinet Grotesk', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #fbf0df 0%, #f7dec0 34%, #f1cf9a 100%); color: #2a180f; }
+      body { margin: 0; font-family: 'Cabinet Grotesk', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #fbf0df 0%, #f7dec0 34%, #f1cf9a 100%); color: #2a180f; overflow: hidden; }
       .app { max-width: 560px; margin: 0 auto; min-height: 100vh; height: 100vh; padding: 10px 10px 94px; display: flex; flex-direction: column; overflow: hidden; }
       .hero { display: grid; grid-template-columns: 1fr; align-items: stretch; gap: 8px; margin-bottom: 8px; flex: 0 0 auto; }
       .hero-title { display: none; }
@@ -19,7 +19,18 @@
       .glass { background: rgba(255,248,242,0.84); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.72); border-radius: 24px; box-shadow: 0 16px 24px rgba(123, 36, 16, 0.08); }
       .screen { display: none; }
       .screen.active { display: block; flex: 1 1 auto; min-height: 0; overflow: hidden; }
-      .panel { padding: 14px; }
+      .panel { padding: 14px; position: relative; }
+      .schedule-ambient { position: absolute; inset: 0; overflow: hidden; border-radius: 24px; pointer-events: none; }
+      .schedule-blob { position: absolute; border-radius: 50%; filter: blur(14px); opacity: 0.72; animation: floatBlob 14s ease-in-out infinite; }
+      .blob-a { width: 180px; height: 180px; background: radial-gradient(circle, rgba(215,42,31,0.42) 0%, rgba(236,61,35,0.08) 68%, transparent 100%); top: -28px; right: -30px; }
+      .blob-b { width: 160px; height: 160px; background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,242,230,0.08) 65%, transparent 100%); bottom: -30px; left: -24px; animation-delay: -4s; }
+      .blob-c { width: 120px; height: 120px; background: radial-gradient(circle, rgba(247,181,56,0.32) 0%, rgba(247,181,56,0.06) 68%, transparent 100%); top: 44%; left: 56%; animation-delay: -8s; }
+      @keyframes floatBlob {
+        0% { transform: translate3d(0, 0, 0) scale(1); }
+        33% { transform: translate3d(10px, -14px, 0) scale(1.05); }
+        66% { transform: translate3d(-12px, 12px, 0) scale(0.96); }
+        100% { transform: translate3d(0, 0, 0) scale(1); }
+      }
       .hero-metrics { display:none; }
       .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
       .panel-title h2 { margin: 0; font-size: 17px; letter-spacing: -0.05em; }
@@ -92,6 +103,11 @@
       </section>
 
       <section class="screen active glass panel" id="screen-schedule">
+        <div class="schedule-ambient" aria-hidden="true">
+          <div class="schedule-blob blob-a"></div>
+          <div class="schedule-blob blob-b"></div>
+          <div class="schedule-blob blob-c"></div>
+        </div>
         <div class="panel-title"><h2>WORKING SCHEDULE</h2><span>UPDATE</span></div>
         <div class="status-highlight"><strong>오늘 근무 상태를 가장 빠르게 등록하세요</strong><span>Compact Input</span></div>
         <div class="field-grid">
