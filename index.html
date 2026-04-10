@@ -52,8 +52,6 @@
       .vacation { background: #fff3e2; color: #ba6b00; }
       .half { background: #ffeaf0; color: #cf4376; }
       .timeoff { background: #f4ecff; color: #6d28d9; }
-      .alert-box { display:none; margin-bottom: 10px; padding: 12px 14px; border-radius: 16px; background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; font-size: 13px; line-height: 1.45; }
-      .alert-box.show { display:block; }
       .rule-card { display:none; margin-bottom: 8px; padding: 12px 14px; border-radius: 18px; background: #fff7ef; border: 1px solid #efdccc; color: #7c2d12; }
       .rule-card.show { display:block; }
       .rule-card strong { display:block; font-size: 14px; margin-bottom: 6px; }
@@ -119,7 +117,6 @@
           <button class="rule-tab" data-rule="consecutive" type="button">연속재택근무</button>
         </div>
         <div class="rule-card" id="ruleCard"></div>
-        <div class="alert-box" id="alertBox"></div>
         <div class="metrics-grid">
           <div class="metric"><small>총 등록 인원</small><strong id="memberCount">0</strong><span>전체 팀 기준 등록된 인원 수</span></div>
         </div>
@@ -198,7 +195,6 @@
       const teamBoard = document.getElementById('teamBoard');
       const adminTabs = document.getElementById('adminTabs');
       const adminList = document.getElementById('adminList');
-      const alertBox = document.getElementById('alertBox');
       const toast = document.getElementById('toast');
       const ruleCard = document.getElementById('ruleCard');
 
@@ -311,25 +307,6 @@
           renderAdmin();
         }));
       };
-      const renderAlerts = (list) => {
-        const limit = weeklyRemoteLimit();
-        const exceeded = list.filter(item => item.remote > limit);
-        const consecutive = consecutiveRemoteMembers();
-        const messages = [];
-        if (exceeded.length) {
-          messages.push(`월간 재택 허용 기준(${limit}회) 초과: ${exceeded.map(item => `${item.name} ${item.remote}회`).join(', ')}`);
-        }
-        if (consecutive.length) {
-          messages.push(`연속 2일 재택 인원: ${consecutive.map(item => `${item.name}(${displayTeam(item.team)})`).join(', ')}`);
-        }
-        if (!messages.length) {
-          alertBox.classList.remove('show');
-          alertBox.textContent = '';
-          return;
-        }
-        alertBox.classList.add('show');
-        alertBox.textContent = `알람: ${messages.join(' / ')}`;
-      };
       const renderRuleCard = (mode, list) => {
         const limit = weeklyRemoteLimit();
         const exceeded = list.filter(item => item.remote > limit);
@@ -360,7 +337,6 @@
         const list = monthlyList();
         const filtered = currentAdminTab ? list.filter(item => item[currentAdminTab] > 0) : [];
         document.getElementById('memberCount').textContent = memberCount();
-        renderAlerts(list);
         if (!currentAdminTab) {
           adminList.classList.remove('show');
           adminList.innerHTML = '';
