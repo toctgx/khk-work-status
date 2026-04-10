@@ -311,6 +311,7 @@
       };
       const renderAdmin = () => {
         const list = monthlyList();
+        const filtered = currentAdminTab ? list.filter(item => item[currentAdminTab] > 0) : [];
         document.getElementById('memberCount').textContent = memberCount();
         renderAlerts(list);
         if (!currentAdminTab) {
@@ -319,13 +320,13 @@
           return;
         }
         adminList.classList.add('show');
-        adminList.innerHTML = list.length ? list.map(item => `
+        adminList.innerHTML = filtered.length ? filtered.map(item => `
           <div class="admin-item">
             <strong>${item.name} · ${displayTeam(item.team)}</strong>
             <span>${adminViews.find(v => v.key === currentAdminTab).label} 월간 누계</span>
             <div class="admin-count">${item[currentAdminTab]}</div>
           </div>
-        `).join('') : '<div class="empty">이번 달 누적된 근무상태 기록이 없습니다.</div>';
+        `).join('') : `<div class="admin-item"><strong>${adminViews.find(v => v.key === currentAdminTab).label}</strong><span>현재 누적된 인원이 없습니다.</span><div class="admin-count">0</div></div>`;
       };
       const updateToday = () => {
         const now = new Date();
