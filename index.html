@@ -276,9 +276,10 @@
       const statusViews = [
         { key: 'office', label: 'Office', match: member => member.status === 'office' },
         { key: 'remote', label: 'Home', match: member => member.status === 'remote' },
-        { key: 'vacation', label: 'Leave (AM)', match: member => member.status === 'half-am' },
+        { key: 'vacation', label: 'Leave', match: member => member.status === 'vacation' },
+        { key: 'half-am', label: 'Leave (AM)', match: member => member.status === 'half-am' },
         { key: 'half-pm', label: 'Leave (PM)', match: member => member.status === 'half-pm' },
-        { key: 'timeoff', label: 'Partial Leave', match: member => member.status === 'timeoff' || member.status === 'vacation' }
+        { key: 'timeoff', label: 'Partial Leave', match: member => member.status === 'timeoff' }
       ];
       const renderTeamTabs = () => {
         teamTabs.innerHTML = statusViews.map(view => `<button class="team-tab ${view.key === currentTeam ? 'active' : ''}" data-team="${view.key}">${view.label}</button>`).join('');
@@ -303,7 +304,7 @@
                       <strong>${member.name}</strong>
                       <span class="member-team">${displayTeam(member.team)}</span>
                     </div>
-                    <div class="status-pill ${meta.className}">${displayTeam(member.team)}</div>
+                    <div class="status-pill ${meta.className}">${member.status === 'timeoff' && member.timeNote ? member.timeNote : displayTeam(member.team)}</div>
                   </div>
                 `;
               }).join('') || `<div class="admin-item"><strong>${currentView.label}</strong><span>No members in this status right now.</span><div class="admin-count">0</div></div>`}
