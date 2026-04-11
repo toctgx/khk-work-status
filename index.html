@@ -44,7 +44,9 @@
       .badge { background: #fff1f2; color: #d92d32; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; }
       .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: calc(100vh - 290px); overflow: auto; padding-right: 2px; }
       .member { display:flex; align-items:center; justify-content:space-between; gap:8px; padding: 10px 10px; border-radius: 14px; background: #ffffff; border: 1px solid #efefef; min-height: 0; }
+      .member-main { min-width: 0; }
       .member strong { display: block; font-size: 13px; }
+      .member-team { display: block; margin-top: 3px; font-size: 11px; color: #8a8a8a; font-weight: 700; }
       .status-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 800; white-space: nowrap; width: fit-content; }
       .office { background: #eef7ef; color: #1f7a43; }
       .remote { background: #fff1f2; color: #d92d32; }
@@ -181,7 +183,7 @@
       };
       const saved = localStorage.getItem(storageKey);
       const state = saved ? JSON.parse(saved) : initialState;
-      let currentTeam = teams[0];
+      let currentTeam = 'office';
       let currentAdminTab = null;
 
       const screens = document.querySelectorAll('.screen');
@@ -271,8 +273,15 @@
         const selectedTeam = teamSelect.value;
         nameSelect.innerHTML = state.members[selectedTeam].map(member => `<option value="${member.name}">${member.name}</option>`).join('');
       };
+      const statusViews = [
+        { key: 'office', label: 'Office', match: member => member.status === 'office' },
+        { key: 'remote', label: 'Home', match: member => member.status === 'remote' },
+        { key: 'vacation', label: 'Leave (AM)', match: member => member.status === 'half-am' },
+        { key: 'half-pm', label: 'Leave (PM)', match: member => member.status === 'half-pm' },
+        { key: 'timeoff', label: 'Partial Leave', match: member => member.status === 'timeoff' || member.status === 'vacation' }
+      ];
       const renderTeamTabs = () => {
-        teamTabs.innerHTML = teams.map(team => `<button class="team-tab ${team === currentTeam ? 'active' : ''}" data-team="${team}">${displayTeam(team)}</button>`).join('');
+        teamTabs.innerHTML = statusViews.map(view => `<button class="team-tab ${view.key === currentTeam ? 'active' : ''}" data-team="${view.key}">${view.label}</button>`).join('');
         teamTabs.querySelectorAll('[data-team]').forEach(btn => btn.addEventListener('click', () => {
           currentTeam = btn.dataset.team;
           renderTeamTabs();
@@ -280,21 +289,24 @@
         }));
       };
       const renderTeamBoard = () => {
-        const members = state.members[currentTeam];
+        const currentView = statusViews.find(view => view.key === currentTeam) || statusViews[0];
+        const members = teams.flatMap(team => state.members[team].map(member => ({ ...member, team }))).filter(currentView.match);
         teamBoard.innerHTML = `
           <section class="team-card">
-            <div class="team-head"><h3>${displayTeam(currentTeam)}</h3><div class="badge">${members.length} people</div></div>
+            <div class="team-head"><h3>${currentView.label}</h3><div class="badge">${members.length} people</div></div>
             <div class="member-grid">
               ${members.map(member => {
                 const meta = statusMap[member.status];
-                const detail = member.status === 'timeoff' && member.timeNote ? member.timeNote : 'Saved today';
                 return `
                   <div class="member">
-                    <strong>${member.name}</strong>
+                    <div class="member-main">
+                      <strong>${member.name}</strong>
+                      <span class="member-team">${displayTeam(member.team)}</span>
+                    </div>
                     <div class="status-pill ${meta.className}">${meta.label}${member.status === 'timeoff' && member.timeNote ? ` (${member.timeNote})` : ''}</div>
                   </div>
                 `;
-              }).join('')}
+              }).join('') || `<div class="admin-item"><strong>${currentView.label}</strong><span>No members in this status right now.</span><div class="admin-count">0</div></div>`}
             </div>
           </section>
         `;
@@ -368,7 +380,6 @@
         member.timeNote = status === 'timeoff' ? timeNote : '';
         incrementMonthly(name, team, status);
         logDailyStatus(name, team, status);
-        currentTeam = team;
         persist();
         timeInput.value = '';
         renderTeamTabs();
