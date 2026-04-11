@@ -98,7 +98,7 @@
           <div class="field"><label for="teamSelect">Team</label><select id="teamSelect"></select></div>
           <div class="field"><label for="nameSelect">Name</label><select id="nameSelect"></select></div>
         </div>
-        <div class="field"><label for="statusSelect">Work Status</label><select id="statusSelect"><option value="office">Office</option><option value="remote">Remote</option><option value="vacation">Vacation</option><option value="half-am">Half Day AM</option><option value="half-pm">Half Day PM</option><option value="timeoff">Partial Time Off (Time Note)</option></select></div>
+        <div class="field"><label for="statusSelect">Work Status</label><select id="statusSelect"><option value="office">Office</option><option value="remote">Home</option><option value="vacation">Leave</option><option value="half-am">Half Day AM</option><option value="half-pm">Half Day PM</option><option value="timeoff">Partial Time Off (Time Note)</option></select></div>
         <div class="field" id="timeField" style="display:none;"><label for="timeInput">Time Note</label><input id="timeInput" placeholder="e.g. 15:00~17:00" /></div>
         <div class="btn-row"><button class="primary" id="saveBtn">Save</button><button class="secondary" id="resetBtn">Reset</button></div>
         <div class="helper">Choose a team, select a name, then save the status to update immediately.</div>
@@ -145,15 +145,15 @@
       };
       const statusMap = {
         office: { label: 'Office', className: 'office' },
-        remote: { label: 'Remote', className: 'remote' },
-        vacation: { label: 'Vacation', className: 'vacation' },
+        remote: { label: 'Home', className: 'remote' },
+        vacation: { label: 'Leave', className: 'vacation' },
         'half-am': { label: 'Half Day AM', className: 'half' },
         'half-pm': { label: 'Half Day PM', className: 'half' },
         timeoff: { label: 'Partial Time Off', className: 'timeoff' }
       };
       const adminViews = [
-        { key: 'remote', label: 'Remote' },
-        { key: 'vacation', label: 'Vacation' },
+        { key: 'remote', label: 'Home' },
+        { key: 'vacation', label: 'Leave' },
         { key: 'half', label: 'Half Day' },
         { key: 'timeoff', label: 'Time Off' }
       ];
@@ -313,21 +313,21 @@
         const consecutive = consecutiveRemoteMembers();
         if (mode === 'house') {
           ruleCard.classList.add('show');
-          ruleCard.innerHTML = `<strong>House Rule</strong><ul><li>Remote work is limited to 2 days per week by default.</li><li>If monthly remote counts exceed the limit, it will appear in the admin review.</li><li>Remote work cannot be registered for 2 consecutive days.</li></ul>`;
+          ruleCard.innerHTML = `<strong>House Rule</strong><ul><li>Home work is limited to 2 days per week by default.</li><li>If monthly home counts exceed the limit, it will appear in the admin review.</li><li>Home work cannot be registered for 2 consecutive days.</li></ul>`;
           return;
         }
         if (mode === 'overwork') {
           ruleCard.classList.add('show');
           ruleCard.innerHTML = exceeded.length
-            ? `<strong>Remote Over Limit</strong><ul>${exceeded.map(item => `<li>${item.name} (${displayTeam(item.team)}) - ${item.remote} times</li>`).join('')}</ul>`
-            : `<strong>Remote Over Limit</strong><ul><li>There are no members over the limit right now.</li></ul>`;
+            ? `<strong>Home Over Limit</strong><ul>${exceeded.map(item => `<li>${item.name} (${displayTeam(item.team)}) - ${item.remote} times</li>`).join('')}</ul>`
+            : `<strong>Home Over Limit</strong><ul><li>There are no members over the limit right now.</li></ul>`;
           return;
         }
         if (mode === 'consecutive') {
           ruleCard.classList.add('show');
           ruleCard.innerHTML = consecutive.length
-            ? `<strong>Consecutive Remote</strong><ul>${consecutive.map(item => `<li>${item.name} (${displayTeam(item.team)})</li>`).join('')}</ul>`
-            : `<strong>Consecutive Remote</strong><ul><li>There are no consecutive remote members right now.</li></ul>`;
+            ? `<strong>Consecutive Home</strong><ul>${consecutive.map(item => `<li>${item.name} (${displayTeam(item.team)})</li>`).join('')}</ul>`
+            : `<strong>Consecutive Home</strong><ul><li>There are no consecutive home members right now.</li></ul>`;
           return;
         }
         ruleCard.classList.remove('show');
