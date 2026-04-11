@@ -156,8 +156,9 @@
       const adminViews = [
         { key: 'remote', label: 'Home' },
         { key: 'vacation', label: 'Leave' },
-        { key: 'half', label: 'Half Day' },
-        { key: 'timeoff', label: 'Time Off' }
+        { key: 'halfAm', label: 'Leave (AM)' },
+        { key: 'halfPm', label: 'Leave (PM)' },
+        { key: 'timeoff', label: 'Partial Leave' }
       ];
       const displayTeam = (team) => team
         .replace('RT TEAM', 'RT')
@@ -230,10 +231,11 @@
         if (status === 'office') return;
         const bucket = getMonthBucket();
         const id = `${team}__${name}`;
-        if (!bucket[id]) bucket[id] = { name, team, remote: 0, vacation: 0, half: 0, timeoff: 0 };
+        if (!bucket[id]) bucket[id] = { name, team, remote: 0, vacation: 0, halfAm: 0, halfPm: 0, timeoff: 0 };
         if (status === 'remote') bucket[id].remote += 1;
         else if (status === 'vacation') bucket[id].vacation += 1;
-        else if (status === 'half-am' || status === 'half-pm') bucket[id].half += 1;
+        else if (status === 'half-am') bucket[id].halfAm += 1;
+        else if (status === 'half-pm') bucket[id].halfPm += 1;
         else if (status === 'timeoff') bucket[id].timeoff += 1;
       };
       const logDailyStatus = (name, team, status) => {
