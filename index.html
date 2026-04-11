@@ -168,12 +168,9 @@
         .replace('S&OP TEAM', 'S&OP')
         .replace('LOGISTICS TEAM', 'LOGISTICS')
         .replace('HR TEAM', 'HR');
-      const storageKey = 'khk-work-status-demo-v5';
-      const monthKey = () => {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      };
-      const initialState = {
+      const storageKey = 'khk-work-status-demo-v6';
+      const monthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const createInitialState = () => ({
         members: teams.reduce((acc, team) => {
           acc[team] = defaultMembers[team].map(name => ({ name, status: 'office', timeNote: '' }));
           return acc;
@@ -181,9 +178,10 @@
         monthlyCounts: {},
         dailyLogs: {},
         lastResetDate: null
-      };
+      });
+      const initialState = createInitialState();
       const saved = localStorage.getItem(storageKey);
-      const state = saved ? JSON.parse(saved) : initialState;
+      const state = saved ? { ...createInitialState(), ...JSON.parse(saved) } : initialState;
       let currentTeam = 'office';
       let currentAdminTab = null;
 
@@ -227,29 +225,62 @@
         date.setDate(date.getDate() - 1);
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       };
-      const incrementMonthly = (name, team, status) => {
-        if (status === 'office') return;
-        const bucket = getMonthBucket();
-        const id = `${team}__${name}`;
-        if (!bucket[id]) bucket[id] = { name, team, remote: 0, vacation: 0, halfAm: 0, halfPm: 0, timeoff: 0 };
-        if (status === 'remote') bucket[id].remote += 1;
-        else if (status === 'vacation') bucket[id].vacation += 1;
-        else if (status === 'half-am') bucket[id].halfAm += 1;
-        else if (status === 'half-pm') bucket[id].halfPm += 1;
-        else if (status === 'timeoff') bucket[id].timeoff += 1;
+      const normalizeState = () => {
+        teams.forEach(team => {
+          const currentMembers = state.members[team] || [];
+          const byName = new Map(currentMembers.map(member => [member.name, member]));
+          state.members[team] = defaultMembers[team].map(name => {
+            const existing = byName.get(name);
+            return existing
+              ? { name, status: existing.status || 'office', timeNote: existing.timeNote || '' }
+              : { name, status: 'office', timeNote: '' };
+          });
+        });
+        state.monthlyCounts ||= {};
+        state.dailyLogs ||= {};
       };
-      const logDailyStatus = (name, team, status) => {
+      const recalculateMonthlyCounts = () => {
+        state.monthlyCounts = {};
+        Object.entries(state.dailyLogs || {}).forEach(([dateKey, entries]) => {
+          const bucketKey = monthKey(new Date(`${dateKey}T00:00:00`));
+          if (!state.monthlyCounts[bucketKey]) state.monthlyCounts[bucketKey] = {};
+          Object.values(entries).forEach(({ name, team, status }) => {
+            if (status === 'office') return;
+            const id = `${team}__${name}`;
+            if (!state.monthlyCounts[bucketKey][id]) state.monthlyCounts[bucketKey][id] = { name, team, remote: 0, vacation: 0, halfAm: 0, halfPm: 0, timeoff: 0 };
+            if (status === 'remote') state.monthlyCounts[bucketKey][id].remote += 1;
+            else if (status === 'vacation') state.monthlyCounts[bucketKey][id].vacation += 1;
+            else if (status === 'half-am') state.monthlyCounts[bucketKey][id].halfAm += 1;
+            else if (status === 'half-pm') state.monthlyCounts[bucketKey][id].halfPm += 1;
+            else if (status === 'timeoff') state.monthlyCounts[bucketKey][id].timeoff += 1;
+          });
+        });
+      };
+      const logDailyStatus = (name, team, payload) => {
         const key = todayKey();
         if (!state.dailyLogs[key]) state.dailyLogs[key] = {};
-        state.dailyLogs[key][`${team}__${name}`] = { name, team, status };
+        state.dailyLogs[key][`${team}__${name}`] = { name, team, status: payload.status, timeNote: payload.timeNote || '' };
+      };
+      const syncMembersWithTodayLog = () => {
+        const todayLogs = state.dailyLogs[todayKey()] || {};
+        teams.forEach(team => {
+          state.members[team] = state.members[team].map(member => {
+            const todayEntry = todayLogs[`${team}__${member.name}`];
+            return todayEntry
+              ? { ...member, status: todayEntry.status || 'office', timeNote: todayEntry.timeNote || '' }
+              : { ...member, status: 'office', timeNote: '' };
+          });
+        });
       };
       const resetDailyStatusesIfNeeded = () => {
         const today = todayKey();
-        if (state.lastResetDate === today) return;
-        teams.forEach(team => {
-          state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
-        });
-        state.lastResetDate = today;
+        if (state.lastResetDate !== today) {
+          teams.forEach(team => {
+            state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
+          });
+          state.lastResetDate = today;
+        }
+        syncMembersWithTodayLog();
         persist();
       };
       const monthlyList = () => Object.values(getMonthBucket()).sort((a, b) => a.team.localeCompare(b.team) || a.name.localeCompare(b.name));
@@ -381,8 +412,8 @@
         if (!member) return;
         member.status = status;
         member.timeNote = status === 'timeoff' ? timeNote : '';
-        incrementMonthly(name, team, status);
-        logDailyStatus(name, team, status);
+        logDailyStatus(name, team, status === 'timeoff' ? { status, timeNote } : { status, timeNote: '' });
+        recalculateMonthlyCounts();
         persist();
         timeInput.value = '';
         renderTeamTabs();
@@ -406,6 +437,8 @@
       document.getElementById('houseRuleBtn').addEventListener('click', () => renderRuleCard('house', monthlyList()));
       document.querySelectorAll('[data-rule]').forEach(btn => btn.addEventListener('click', () => renderRuleCard(btn.dataset.rule, monthlyList())));
 
+      normalizeState();
+      recalculateMonthlyCounts();
       resetDailyStatusesIfNeeded();
       renderTeamOptions();
       renderNameOptions();
