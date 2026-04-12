@@ -168,7 +168,7 @@
         .replace('S&OP TEAM', 'S&OP')
         .replace('LOGISTICS TEAM', 'LOGISTICS')
         .replace('HR TEAM', 'HR');
-      const storageKey = 'khk-work-status-demo-v6';
+      const storageKey = 'khk-work-status-demo-v7';
       const monthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const createInitialState = () => ({
         members: teams.reduce((acc, team) => {
@@ -274,13 +274,16 @@
       };
       const resetDailyStatusesIfNeeded = () => {
         const today = todayKey();
+        const hasTodayLog = !!state.dailyLogs?.[today] && Object.keys(state.dailyLogs[today]).length > 0;
         if (state.lastResetDate !== today) {
           teams.forEach(team => {
             state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
           });
           state.lastResetDate = today;
         }
-        syncMembersWithTodayLog();
+        if (hasTodayLog) {
+          syncMembersWithTodayLog();
+        }
         persist();
       };
       const monthlyList = () => Object.values(getMonthBucket()).sort((a, b) => a.team.localeCompare(b.team) || a.name.localeCompare(b.name));
