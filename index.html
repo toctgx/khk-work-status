@@ -406,12 +406,12 @@
       };
       const parseImportedStatus = (raw) => {
         const value = String(raw || '').trim();
-        if (!value) return { status: 'office', timeNote: '' };
+        if (!value) return null;
         if (value === 'O') return { status: 'office', timeNote: '' };
         if (value === 'H') return { status: 'remote', timeNote: '' };
         if (value === 'D') return { status: 'vacation', timeNote: '' };
         if (/^D\((오전|AM)\)$/i.test(value)) return { status: 'half-am', timeNote: '' };
-        if (/^D\((오후|PM)\)$/i.test(value)) return { status: 'half-pm', timeNote: '' };
+        if (/^D\((오후|PM)\)$/i.test(value) || /^D오후\)?$/i.test(value)) return { status: 'half-pm', timeNote: '' };
         if (/^D\(([^)]+)\)$/.test(value)) {
           const note = value.match(/^D\(([^)]+)\)$/)?.[1] || '';
           if (/\d/.test(note)) return { status: 'timeoff', timeNote: note };
@@ -420,48 +420,66 @@
         if (/^D\//.test(value)) return { status: 'vacation', timeNote: value.replace(/^D\//, '') };
         return { status: 'timeoff', timeNote: value };
       };
+      const teamAliases = {
+        Alex: 'RT TEAM', Thomas: 'RT TEAM', Ryan: 'RT TEAM', Hugh: 'RT TEAM', Luca: 'RT TEAM', Adela: 'RT TEAM', Lilly: 'RT TEAM',
+        Austin: 'AFH TEAM', Antonio: 'AFH TEAM', 'John.P': 'AFH TEAM', Dennis: 'AFH TEAM', Tom: 'AFH TEAM',
+        Jen: 'MKT TEAM', Jimin: 'MKT TEAM', Leo: 'MKT TEAM', Heewon: 'MKT TEAM', Olivia: 'MKT TEAM',
+        Steve: 'FINANCE TEAM', Rachel: 'FINANCE TEAM', Joanne: 'HR TEAM', Khan: 'FINANCE TEAM', Claire: 'HR TEAM',
+        Grace: 'S&OP TEAM', Jessica: 'S&OP TEAM', Sophie: 'S&OP TEAM',
+        Edward: 'LOGISTICS TEAM', Amy: 'LOGISTICS TEAM', Jane: 'LOGISTICS TEAM', Nari: 'LOGISTICS TEAM'
+      };
+      const normalizeImportedName = (name) => {
+        if (name === 'John.P') return 'John';
+        if (name === 'Khan') return 'Kahn';
+        if (name === 'Lilly') return 'Dami';
+        return name;
+      };
       const importAprilSheet = async () => {
         const response = await fetch('./assets/working_schedule_apr.xlsx');
         const buffer = await response.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        importedAprilSheet = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+        importedAprilSheet = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
         showToast('April sheet imported.');
+      };
+      const findSectionHeaderRow = (sheetRows, todayDate) => {
+        for (let i = 0; i < sheetRows.length; i += 1) {
+          const row = sheetRows[i] || [];
+          if (row[1] === 'Working Hours' && row[2] === 'Name') {
+            const dayColumn = row.findIndex(cell => Number(cell) === todayDate);
+            if (dayColumn !== -1) return { headerRowIndex: i, dayColumn };
+          }
+        }
+        return null;
       };
       const applyImportedSheetToToday = () => {
         if (!importedAprilSheet) {
           showToast('Import the April sheet first.');
           return;
         }
-        const now = new Date();
-        const todayDate = now.getDate();
-        let dayColumn = -1;
-        const dateRow = importedAprilSheet.find(row => row && row.includes && row.includes(todayDate));
-        if (dateRow) dayColumn = dateRow.findIndex(cell => Number(cell) === todayDate);
-        if (dayColumn === -1) {
+        const todayDate = new Date().getDate();
+        const headerInfo = findSectionHeaderRow(importedAprilSheet, todayDate);
+        if (!headerInfo) {
           showToast('Today was not found in the April sheet.');
           return;
         }
-        const teamAliases = {
-          Alex: 'RT TEAM', Thomas: 'RT TEAM', Ryan: 'RT TEAM', Hugh: 'RT TEAM', Luca: 'RT TEAM', Adela: 'RT TEAM', Lilly: 'RT TEAM',
-          Austin: 'AFH TEAM', Antonio: 'AFH TEAM', 'John.P': 'AFH TEAM', Dennis: 'AFH TEAM', Tom: 'AFH TEAM',
-          Jen: 'MKT TEAM', Jimin: 'MKT TEAM', Leo: 'MKT TEAM', Heewon: 'MKT TEAM', Olivia: 'MKT TEAM',
-          Steve: 'FINANCE TEAM', Rachel: 'FINANCE TEAM', Joanne: 'HR TEAM', Khan: 'FINANCE TEAM', Claire: 'HR TEAM',
-          Grace: 'S&OP TEAM', Jessica: 'S&OP TEAM', Sophie: 'S&OP TEAM',
-          Edward: 'LOGISTICS TEAM', Amy: 'LOGISTICS TEAM', Jane: 'LOGISTICS TEAM', Nari: 'LOGISTICS TEAM'
-        };
-        importedAprilSheet.forEach(row => {
-          const name = row?.[2];
-          if (!name || !teamAliases[name]) return;
-          const raw = row[dayColumn];
-          if (!raw) return;
-          const parsed = parseImportedStatus(raw);
-          const team = teamAliases[name];
-          const member = state.members[team]?.find(item => item.name === name || (name === 'John.P' && item.name === 'John') || (name === 'Khan' && item.name === 'Kahn'));
+        const { dayColumn } = headerInfo;
+        let appliedCount = 0;
+        importedAprilSheet.forEach((row, index) => {
+          if (index < 6) return;
+          const rawName = row?.[2];
+          if (!rawName || rawName === 'Name' || rawName === 'TTL by Day') return;
+          if (!teamAliases[rawName]) return;
+          const parsed = parseImportedStatus(row[dayColumn]);
+          if (!parsed) return;
+          const team = teamAliases[rawName];
+          const name = normalizeImportedName(rawName);
+          const member = state.members[team]?.find(item => item.name === name);
           if (!member) return;
           member.status = parsed.status;
           member.timeNote = parsed.timeNote || '';
           logDailyStatus(member.name, team, parsed);
+          appliedCount += 1;
         });
         recalculateMonthlyCounts();
         persist();
@@ -469,7 +487,7 @@
         renderTeamBoard();
         renderAdminTabs();
         renderAdmin();
-        showToast('April sheet applied to today.');
+        showToast(`Applied ${appliedCount} entries for today.`);
       };
       const updateToday = () => {
         const now = new Date();
