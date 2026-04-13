@@ -459,6 +459,11 @@
           return;
         }
         const { dayColumn } = headerInfo;
+        const today = todayKey();
+        state.dailyLogs[today] = {};
+        teams.forEach(team => {
+          state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
+        });
         let appliedCount = 0;
         importedAprilSheet.forEach((row, index) => {
           if (index < 6) return;
@@ -473,9 +478,10 @@
           if (!member) return;
           member.status = parsed.status;
           member.timeNote = parsed.timeNote || '';
-          logDailyStatus(member.name, team, parsed);
+          state.dailyLogs[today][`${team}__${member.name}`] = { name: member.name, team, status: parsed.status, timeNote: parsed.timeNote || '', eventType: parsed.eventType || '' };
           appliedCount += 1;
         });
+        state.lastResetDate = today;
         recalculateMonthlyCounts();
         persist();
         renderTeamTabs();
