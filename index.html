@@ -262,7 +262,7 @@
       const logDailyStatus = (name, team, payload) => {
         const key = todayKey();
         if (!state.dailyLogs[key]) state.dailyLogs[key] = {};
-        state.dailyLogs[key][`${team}__${name}`] = { name, team, status: payload.status, timeNote: payload.timeNote || '' };
+        state.dailyLogs[key][`${team}__${name}`] = { name, team, status: payload.status, timeNote: payload.timeNote || '', eventType: payload.eventType || '' };
       };
       const syncMembersWithTodayLog = () => {
         const todayLogs = state.dailyLogs[todayKey()] || {};
@@ -343,7 +343,7 @@
                       <strong>${member.name}</strong>
                       <span class="member-team">${displayTeam(member.team)}</span>
                     </div>
-                    <div class="status-pill ${meta.className}">${member.status === 'timeoff' && member.timeNote ? member.timeNote : displayTeam(member.team)}</div>
+                    <div class="status-pill ${meta.className}">${member.timeNote ? member.timeNote : displayTeam(member.team)}</div>
                   </div>
                 `;
               }).join('') || `<div class="admin-item"><strong>${currentView.label}</strong><span>No members in this status right now.</span><div class="admin-count">0</div></div>`}
@@ -407,18 +407,18 @@
       const parseImportedStatus = (raw) => {
         const value = String(raw || '').trim();
         if (!value) return null;
-        if (value === 'O') return { status: 'office', timeNote: '' };
-        if (value === 'H') return { status: 'remote', timeNote: '' };
-        if (value === 'D') return { status: 'vacation', timeNote: '' };
-        if (/^D\((오전|AM)\)$/i.test(value)) return { status: 'half-am', timeNote: '' };
-        if (/^D\((오후|PM)\)$/i.test(value) || /^D오후\)?$/i.test(value)) return { status: 'half-pm', timeNote: '' };
+        if (value === 'O') return { status: 'office', timeNote: '', eventType: '' };
+        if (value === 'H') return { status: 'remote', timeNote: '', eventType: '' };
+        if (value === 'D') return { status: 'vacation', timeNote: '', eventType: 'leave' };
+        if (/^D\((오전|AM)\)$/i.test(value)) return { status: 'half-am', timeNote: '', eventType: 'leave_am' };
+        if (/^D\((오후|PM)\)$/i.test(value) || /^D오후\)?$/i.test(value)) return { status: 'half-pm', timeNote: '', eventType: 'leave_pm' };
         if (/^D\(([^)]+)\)$/.test(value)) {
           const note = value.match(/^D\(([^)]+)\)$/)?.[1] || '';
-          if (/\d/.test(note)) return { status: 'timeoff', timeNote: note };
-          return { status: 'vacation', timeNote: note };
+          if (/\d/.test(note)) return { status: 'timeoff', timeNote: note, eventType: 'partial_leave' };
+          return { status: 'vacation', timeNote: note, eventType: 'leave' };
         }
-        if (/^D\//.test(value)) return { status: 'vacation', timeNote: value.replace(/^D\//, '') };
-        return { status: 'timeoff', timeNote: value };
+        if (/^D\//.test(value)) return { status: 'vacation', timeNote: value.replace(/^D\//, ''), eventType: 'leave' };
+        return { status: 'office', timeNote: value, eventType: 'office_event' };
       };
       const teamAliases = {
         Alex: 'RT TEAM', Thomas: 'RT TEAM', Ryan: 'RT TEAM', Hugh: 'RT TEAM', Luca: 'RT TEAM', Adela: 'RT TEAM', Lilly: 'RT TEAM',
