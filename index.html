@@ -9,17 +9,18 @@
     <style>
       @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
       * { box-sizing: border-box; }
-      body { margin: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%); color: #1f1f1f; overflow: hidden; height: 100vh; }
-      .app { max-width: 560px; margin: 0 auto; height: 100vh; padding: 10px 10px 84px; display: flex; flex-direction: column; overflow: hidden; }
+      body { margin: 0; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%); color: #1f1f1f; }
+      .app { max-width: 560px; margin: 0 auto; min-height: 100vh; padding: 10px 10px 84px; display: flex; flex-direction: column; }
       .hero { display: flex; justify-content: flex-end; align-items: stretch; gap: 8px; margin-bottom: 8px; flex: 0 0 auto; }
       .today-card { padding: 12px 12px; min-width: 108px; border-radius: 18px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04); text-align: right; }
       .today-card strong { display: block; font-size: 10px; letter-spacing: 0.16em; color: #d92d32; }
       .today-card span { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; }
       .glass { background: #ffffff; border: 1px solid #ececec; border-radius: 22px; box-shadow: 0 14px 24px rgba(0, 0, 0, 0.05); }
       .screen { display: none; }
-      .screen.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 14px 14px 0; }
-      #screen-schedule.active { overflow-y: auto; padding: 14px; }
-      .scroll-body { flex: 1 1 auto; overflow-y: auto; padding-bottom: 84px; }
+      .screen.active { display: block; }
+      #screen-schedule.active { padding: 14px; }
+      #screen-status.active { padding: 14px 14px 0; }
+      #screen-admin.active { padding: 14px 14px 0; }
       .hero-metrics { display:none; }
       .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
       .panel-title h2 { margin: 0; font-size: 17px; letter-spacing: -0.05em; }
@@ -41,11 +42,11 @@
       .team-tabs, .admin-tabs, .rule-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 8px; }
       .team-tab, .admin-tab, .rule-tab { flex: 0 0 auto; min-height: 36px; padding: 0 14px; border-radius: 999px; background: #ffffff; color: #686868; border: 1px solid #e7e7e7; font-size: 11px; touch-action: manipulation; }
       .team-tab.active, .admin-tab.active, .rule-tab.active { background: #d92d32; color: white; border-color: transparent; box-shadow: 0 8px 16px rgba(217,45,50,0.18); }
-      .team-card { padding: 10px; border-radius: 20px; background: #ffffff; border: 1px solid #ececec; flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; }
+      .team-card { padding: 10px; border-radius: 20px; background: #ffffff; border: 1px solid #ececec; }
       .team-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
       .team-head h3 { margin: 0; font-size: 15px; letter-spacing: 0.04em; }
       .badge { background: #fff1f2; color: #d92d32; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; }
-      .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; padding-right: 2px; padding-bottom: 16px; }
+      .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-right: 2px; }
       .member { display:flex; align-items:center; justify-content:space-between; gap:8px; padding: 10px 10px; border-radius: 14px; background: #ffffff; border: 1px solid #efefef; min-height: 0; }
       .member-main { min-width: 0; }
       .member strong { display: block; font-size: 13px; }
@@ -67,7 +68,7 @@
       .metric small { display: block; color: #7a7a7a; font-size: 11px; letter-spacing: 0.12em; }
       .metric strong { display: block; margin-top: 4px; font-size: 22px; letter-spacing: -0.06em; }
       .metric span { color: #7a7a7a; font-size: 13px; }
-      .admin-list { margin-top: 8px; display: none; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-y: auto; overflow-x: hidden; border-top: 1px dashed #e7cdb8; padding: 8px 2px 16px; align-content: start; flex: 1 1 auto; }
+      .admin-list { margin-top: 8px; display: none; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px dashed #e7cdb8; padding: 8px 2px 8px; align-content: start; }
       .admin-list.show { display: grid; }
       .admin-item { display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:8px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1px solid #ececec; }
       .admin-item-main { min-width:0; flex: 1; }
@@ -76,7 +77,7 @@
       .admin-item span { display:none; }
       .admin-count { flex:0 0 auto; min-width: 28px; text-align:center; padding: 4px 8px; border-radius: 999px; background:#fff1f2; color:#d92d32; font-size: 13px; font-weight: 800; letter-spacing: -0.03em; }
       .empty { color: #98a2b3; font-size: 13px; }
-      .bottom-nav { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); width: calc(100% - 20px); max-width: 520px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 10px 22px rgba(0,0,0,0.06); border-radius: 22px; padding: 6px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; z-index: 100; }
+      .bottom-nav { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 560px; background: #ffffff; border-top: 1px solid #ececec; box-shadow: 0 -4px 16px rgba(0,0,0,0.06); padding: 8px 10px max(10px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; z-index: 100; }
       .bottom-nav button { min-height: 52px; background: transparent; color: #7a7a7a; border-radius: 16px; font-size: 13px; line-height: 1.15; }
       .bottom-nav button.active { background: linear-gradient(180deg, #de2f36 0%, #cf242d 100%); color: white; }
       @media (max-width: 460px) {
@@ -113,7 +114,7 @@
 
       <section class="screen glass" id="screen-status">
         <div class="team-tabs" id="teamTabs"></div>
-        <div class="scroll-body" id="teamBoard"></div>
+        <div id="teamBoard"></div>
       </section>
 
       <section class="screen glass" id="screen-admin">
@@ -123,14 +124,12 @@
           <button class="rule-tab" data-rule="overwork" type="button">재택 초과</button>
           <button class="rule-tab" data-rule="consecutive" type="button">연속 재택</button>
         </div>
-        <div class="scroll-body">
-          <div class="rule-card" id="ruleCard"></div>
-          <div class="metrics-grid">
-            <div class="metric"><small>전체 인원</small><strong id="memberCount">0</strong><span>전체 팀 등록 인원</span></div>
-          </div>
-          <div class="admin-tabs" id="adminTabs"></div>
-          <div class="admin-list" id="adminList"></div>
+        <div class="rule-card" id="ruleCard"></div>
+        <div class="metrics-grid">
+          <div class="metric"><small>전체 인원</small><strong id="memberCount">0</strong><span>전체 팀 등록 인원</span></div>
         </div>
+        <div class="admin-tabs" id="adminTabs"></div>
+        <div class="admin-list" id="adminList"></div>
       </section>
     </div>
     <nav class="bottom-nav">
