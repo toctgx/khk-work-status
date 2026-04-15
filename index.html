@@ -97,6 +97,24 @@
       .pin-btn:active { background: #f4f4f6; }
       .pin-del { font-size: 18px; color: #666; }
 
+      /* ── 알람 ── */
+      .alarm-bar { background: #fff; border-bottom: 1px solid #efefef; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; min-height: 44px; cursor: pointer; }
+      .alarm-bar-left { display: flex; align-items: center; gap: 8px; }
+      .alarm-bell { position: relative; font-size: 18px; }
+      .alarm-badge { position: absolute; top: -4px; right: -6px; background: #d92d32; color: #fff; font-size: 9px; font-weight: 800; border-radius: 999px; padding: 1px 5px; min-width: 16px; text-align: center; }
+      .alarm-title { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+      .alarm-chevron { font-size: 11px; color: #bbb; transition: transform 0.2s; }
+      .alarm-chevron.open { transform: rotate(180deg); }
+      .alarm-list { background: #fafafa; border-bottom: 1px solid #efefef; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+      .alarm-list.open { max-height: 300px; overflow-y: auto; }
+      .alarm-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #f0f0f0; }
+      .alarm-item:last-child { border-bottom: none; }
+      .alarm-item-text { font-size: 12px; color: #333; line-height: 1.5; }
+      .alarm-item-time { font-size: 11px; color: #bbb; white-space: nowrap; margin-left: 8px; }
+      .alarm-empty { padding: 16px; text-align: center; font-size: 12px; color: #bbb; }
+      .alarm-clear { padding: 8px 16px; text-align: right; }
+      .alarm-clear button { font-size: 11px; color: #999; background: none; border: none; cursor: pointer; font-family: inherit; min-height: unset; padding: 4px 8px; border-radius: 8px; }
+
       /* ── 토스트 ── */
       .toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(10px); min-width: 200px; padding: 12px 20px; border-radius: 999px; background: rgba(30,30,30,0.88); color: #fff; text-align: center; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 9999; }
       .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -115,6 +133,22 @@
         </div>
         <div class="app-header-date" id="todayLabel"></div>
       </header>
+
+      <!-- 알람 바 -->
+      <div id="alarmBar" class="alarm-bar">
+        <div class="alarm-bar-left">
+          <div class="alarm-bell">
+            🔔
+            <span class="alarm-badge" id="alarmBadge" style="display:none;">0</span>
+          </div>
+          <span class="alarm-title">근무 상태 변경 알림</span>
+        </div>
+        <span class="alarm-chevron" id="alarmChevron">▼</span>
+      </div>
+      <div class="alarm-list" id="alarmList">
+        <div id="alarmItems"><div class="alarm-empty">변경 내역이 없습니다.</div></div>
+        <div class="alarm-clear"><button id="alarmClearBtn">모두 지우기</button></div>
+      </div>
 
       <!-- 등록 화면 -->
       <section class="screen active" id="screen-schedule">
@@ -233,6 +267,7 @@
         .replace('LOGISTICS TEAM', 'LOGISTICS')
         .replace('HR TEAM', 'HR');
       const storageKey = 'khk-work-status-demo-v7';
+      const alarmKey = 'khk-alarm-log-v1';
       const monthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const createInitialState = () => ({
         members: teams.reduce((acc, team) => {
@@ -271,6 +306,52 @@
         // 화면 전환 시 매니저 admin 탭 스크롤 위치 초기화
         if (id === 'screen-admin') { const sa = document.getElementById('adminScrollArea'); if(sa) sa.scrollTop = 0; }
       };
+      // 알람 로직
+      const statusLabels = { office: '오피스', remote: '재택근무', vacation: '휴가', 'half-am': '오전 반차', 'half-pm': '오후 반차', timeoff: '반반차' };
+      let alarmLogs = JSON.parse(localStorage.getItem(alarmKey) || '[]');
+      let alarmOpen = false;
+
+      const renderAlarm = () => {
+        const badge = document.getElementById('alarmBadge');
+        const items = document.getElementById('alarmItems');
+        const unread = alarmLogs.filter(a => !a.read).length;
+        badge.style.display = unread > 0 ? 'block' : 'none';
+        badge.textContent = unread;
+        items.innerHTML = alarmLogs.length ? alarmLogs.slice().reverse().map(a => `
+          <div class="alarm-item">
+            <span class="alarm-item-text"><strong>${a.name}</strong> 근무 상태를 <strong>${a.status}</strong>으로 변경했습니다.</span>
+            <span class="alarm-item-time">${a.time}</span>
+          </div>
+        `).join('') : '<div class="alarm-empty">변경 내역이 없습니다.</div>';
+      };
+      const addAlarm = (name, status, timeNote) => {
+        const now = new Date();
+        const time = now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        const label = status === 'timeoff' && timeNote ? `반반차 ${timeNote}` : (statusLabels[status] || status);
+        alarmLogs.push({ name, status: label, time, read: false });
+        if (alarmLogs.length > 50) alarmLogs = alarmLogs.slice(-50);
+        localStorage.setItem(alarmKey, JSON.stringify(alarmLogs));
+        renderAlarm();
+      };
+
+      document.getElementById('alarmBar').addEventListener('click', () => {
+        alarmOpen = !alarmOpen;
+        document.getElementById('alarmList').classList.toggle('open', alarmOpen);
+        document.getElementById('alarmChevron').classList.toggle('open', alarmOpen);
+        if (alarmOpen) {
+          alarmLogs = alarmLogs.map(a => ({ ...a, read: true }));
+          localStorage.setItem(alarmKey, JSON.stringify(alarmLogs));
+          renderAlarm();
+        }
+      });
+      document.getElementById('alarmClearBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        alarmLogs = [];
+        localStorage.setItem(alarmKey, JSON.stringify(alarmLogs));
+        renderAlarm();
+      });
+      renderAlarm();
+
       const showToast = (message) => {
         toast.textContent = message;
         toast.classList.add('show');
@@ -606,6 +687,7 @@
         logDailyStatus(name, team, status === 'timeoff' ? { status, timeNote } : { status, timeNote: '' });
         recalculateMonthlyCounts();
         persist();
+        addAlarm(name, status, timeNote);
         timeInput.value = '';
         renderTeamTabs();
         renderTeamBoard();
