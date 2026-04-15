@@ -90,6 +90,13 @@
       .nav-btn.active { color: #d92d32; }
       .nav-btn svg { transition: none; }
 
+      /* ── PIN ── */
+      .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ccc; background: transparent; transition: background 0.15s; }
+      .pin-dot.filled { background: #1a1a1a; border-color: #1a1a1a; }
+      .pin-btn { height: 64px; background: #fff; border: 1px solid #efefef; border-radius: 16px; font-size: 22px; font-weight: 700; color: #1a1a1a; cursor: pointer; font-family: inherit; }
+      .pin-btn:active { background: #f4f4f6; }
+      .pin-del { font-size: 18px; color: #666; }
+
       /* ── 토스트 ── */
       .toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(10px); min-width: 200px; padding: 12px 20px; border-radius: 999px; background: rgba(30,30,30,0.88); color: #fff; text-align: center; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 9999; }
       .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -135,6 +142,27 @@
         <div class="scroll-area" id="teamBoard"></div>
       </section>
 
+      <!-- 비밀번호 화면 -->
+      <section class="screen" id="screen-pin">
+        <div class="scroll-area" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+          <div style="text-align:center;margin-bottom:32px;">
+            <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+            <div style="font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:6px;">관리자 페이지</div>
+            <div style="font-size:13px;color:#999;">비밀번호를 입력해주세요</div>
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:24px;" id="pinDots">
+            <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+          </div>
+          <div id="pinError" style="color:#d92d32;font-size:13px;font-weight:700;height:20px;margin-bottom:12px;"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px;">
+            <button class="pin-btn" data-n="1">1</button><button class="pin-btn" data-n="2">2</button><button class="pin-btn" data-n="3">3</button>
+            <button class="pin-btn" data-n="4">4</button><button class="pin-btn" data-n="5">5</button><button class="pin-btn" data-n="6">6</button>
+            <button class="pin-btn" data-n="7">7</button><button class="pin-btn" data-n="8">8</button><button class="pin-btn" data-n="9">9</button>
+            <div></div><button class="pin-btn" data-n="0">0</button><button class="pin-btn pin-del" data-n="del">⌫</button>
+          </div>
+        </div>
+      </section>
+
       <!-- 관리자 화면 -->
       <section class="screen" id="screen-admin">
         <div class="tab-bar" id="ruleTabs">
@@ -159,7 +187,7 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>현황</span>
         </button>
-        <button class="nav-btn" data-screen="screen-admin">
+        <button class="nav-btn" id="adminNavBtn">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span>관리자</span>
         </button>
@@ -596,7 +624,58 @@
       document.getElementById('saveBtn').addEventListener('click', saveStatus);
 
 
-      navButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+      // 관리자 비밀번호
+      const ADMIN_PIN = '1234';
+      let pinInput = '';
+      let adminUnlocked = false;
+
+      const updatePinDots = () => {
+        document.querySelectorAll('.pin-dot').forEach((dot, i) => {
+          dot.classList.toggle('filled', i < pinInput.length);
+        });
+      };
+      const resetPin = () => { pinInput = ''; updatePinDots(); document.getElementById('pinError').textContent = ''; };
+
+      document.querySelectorAll('.pin-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const n = btn.dataset.n;
+          if (n === 'del') {
+            pinInput = pinInput.slice(0, -1);
+          } else if (pinInput.length < 4) {
+            pinInput += n;
+          }
+          updatePinDots();
+          if (pinInput.length === 4) {
+            if (pinInput === ADMIN_PIN) {
+              adminUnlocked = true;
+              resetPin();
+              showScreen('screen-admin');
+              document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.id === 'adminNavBtn'));
+            } else {
+              document.getElementById('pinError').textContent = '비밀번호가 잌못되었습니다.';
+              setTimeout(resetPin, 800);
+            }
+          }
+        });
+      });
+
+      document.getElementById('adminNavBtn').addEventListener('click', () => {
+        if (adminUnlocked) {
+          showScreen('screen-admin');
+        } else {
+          showScreen('screen-pin');
+          resetPin();
+        }
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.id === 'adminNavBtn'));
+      });
+
+      navButtons.forEach(btn => {
+        if (btn.id === 'adminNavBtn') return;
+        btn.addEventListener('click', () => {
+          adminUnlocked = false;
+          showScreen(btn.dataset.screen);
+        });
+      });
       document.querySelectorAll('#ruleTabs [data-rule]').forEach(btn => btn.addEventListener('click', () => {
         if (currentRuleTab === btn.dataset.rule) {
           currentRuleTab = null;
