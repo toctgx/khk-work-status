@@ -170,13 +170,18 @@
             <div class="field" id="timeField" style="display:none;"><label for="timeInput">시간 메모</label><input id="timeInput" placeholder="예: 15:00~17:00" /></div>
             <button class="save-btn" id="saveBtn">저장</button>
           </div>
-          <div class="rule-box" style="margin-bottom:12px;">
-            <strong>하우스 룰</strong>
-            <ul>
-              <li>재택근무는 기본적으로 주 2일로 제한됩니다.</li>
-              <li>월간 재택 횟수가 한도를 초과하면 관리자 화면에 표시됩니다.</li>
-              <li>재택근무는 2일 연속으로 등록할 수 없습니다.</li>
-            </ul>
+          <div class="notice-box" style="margin-bottom:12px;cursor:pointer;" id="houseRuleToggle">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <p style="margin:0;font-weight:800;">📌 하우스 룰</p>
+              <span id="houseRuleChevron" style="color:#8f1d22;font-size:12px;transition:transform 0.2s;">▼</span>
+            </div>
+            <div id="houseRuleContent" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+              <ul style="margin-top:10px;padding-left:18px;">
+                <li style="font-size:13px;color:#8f1d22;line-height:1.8;">재택근무는 기본적으로 주 2일로 제한됩니다.</li>
+                <li style="font-size:13px;color:#8f1d22;line-height:1.8;">월간 재택 횟수가 한도를 초과하면 관리자 화면에 표시됩니다.</li>
+                <li style="font-size:13px;color:#8f1d22;line-height:1.8;">재택근무는 2일 연속으로 등록할 수 없습니다.</li>
+              </ul>
+            </div>
           </div>
           <div class="notice-box">
             <p>매월 1일 working schedule excel 파일기준으로 업데이트됩니다.<br>개인사정에 따라 상태 변경이 필요할 경우 위에서 직접 수정하여 저장해주시면됩니다.</p>
@@ -369,6 +374,16 @@
         renderAlarm();
       });
       renderAlarm();
+
+      // 하우스 룰 토글
+      let houseRuleOpen = false;
+      document.getElementById('houseRuleToggle').addEventListener('click', () => {
+        houseRuleOpen = !houseRuleOpen;
+        const content = document.getElementById('houseRuleContent');
+        const chevron = document.getElementById('houseRuleChevron');
+        content.style.maxHeight = houseRuleOpen ? content.scrollHeight + 'px' : '0';
+        chevron.style.transform = houseRuleOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
 
       const showToast = (message) => {
         toast.textContent = message;
