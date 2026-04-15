@@ -428,28 +428,9 @@
         }));
         const maxCount = Math.max(...counts.map(c => c.count), 1);
 
-        // 그래프 렌더링
         adminList.classList.add('show');
         adminList.style.display = 'block';
         adminList.style.gridTemplateColumns = '';
-
-        const chartHtml = `
-          <div style="margin-bottom:14px;">
-            <div style="font-size:11px;color:#999;margin-bottom:10px;">이번 달 근무형태별 누적 현황</div>
-            ${counts.map(c => `
-              <div style="margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                  <span style="font-size:12px;font-weight:700;color:#333;">${c.label}</span>
-                  <span style="font-size:12px;font-weight:800;color:${c.color};">${c.count}일</span>
-                </div>
-                <div style="background:#f0f0f0;border-radius:999px;height:8px;overflow:hidden;">
-                  <div style="height:100%;border-radius:999px;background:${c.color};width:${Math.round((c.count/maxCount)*100)}%;transition:width 0.4s ease;"></div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-          <div style="border-top:1px dashed #e7cdb8;padding-top:10px;">
-        `;
 
         const filtered = currentAdminTab ? list.filter(item => item[currentAdminTab] > 0) : [];
         const listHtml = currentAdminTab ? `
@@ -463,7 +444,7 @@
           </div>
         ` : '';
 
-        adminList.innerHTML = chartHtml + listHtml + '</div>';
+        adminList.innerHTML = listHtml;
       };
       const parseImportedStatus = (raw) => {
         const value = String(raw || '').trim();
