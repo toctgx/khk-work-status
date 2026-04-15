@@ -172,7 +172,7 @@
           </div>
           <div class="notice-box" style="margin-bottom:12px;cursor:pointer;" id="houseRuleToggle">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <p style="margin:0;font-weight:800;">📌 하우스 룰</p>
+              <p style="margin:0;font-weight:800;">하우스 룰</p>
               <span id="houseRuleChevron" style="color:#8f1d22;font-size:12px;transition:transform 0.2s;">▼</span>
             </div>
             <div id="houseRuleContent" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
@@ -183,8 +183,14 @@
               </ul>
             </div>
           </div>
-          <div class="notice-box">
-            <p>매월 1일 working schedule excel 파일기준으로 업데이트됩니다.<br>개인사정에 따라 상태 변경이 필요할 경우 위에서 직접 수정하여 저장해주시면됩니다.</p>
+          <div class="notice-box" style="cursor:pointer;" id="usageToggle">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <p style="margin:0;font-weight:800;">사용법</p>
+              <span id="usageChevron" style="color:#8f1d22;font-size:12px;transition:transform 0.2s;">▼</span>
+            </div>
+            <div id="usageContent" style="max-height:0;overflow:hidden;transition:max-height 0.3s ease;">
+              <p style="margin-top:10px;">매월 1일 working schedule excel 파일기준으로 업데이트됩니다.<br>개인사정에 따라 상태 변경이 필요할 경우 위에서 직접 수정하여 저장해주시면됩니다.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -375,15 +381,17 @@
       });
       renderAlarm();
 
-      // 하우스 룰 토글
-      let houseRuleOpen = false;
-      document.getElementById('houseRuleToggle').addEventListener('click', () => {
-        houseRuleOpen = !houseRuleOpen;
-        const content = document.getElementById('houseRuleContent');
-        const chevron = document.getElementById('houseRuleChevron');
-        content.style.maxHeight = houseRuleOpen ? content.scrollHeight + 'px' : '0';
-        chevron.style.transform = houseRuleOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-      });
+      // 토글 공통 함수
+      const makeToggle = (btnId, contentId, chevronId) => {
+        let open = false;
+        document.getElementById(btnId).addEventListener('click', () => {
+          open = !open;
+          document.getElementById(contentId).style.maxHeight = open ? document.getElementById(contentId).scrollHeight + 'px' : '0';
+          document.getElementById(chevronId).style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+      };
+      makeToggle('houseRuleToggle', 'houseRuleContent', 'houseRuleChevron');
+      makeToggle('usageToggle', 'usageContent', 'usageChevron');
 
       const showToast = (message) => {
         toast.textContent = message;
