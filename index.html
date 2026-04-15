@@ -116,7 +116,7 @@
       .alarm-title { font-size: 13px; font-weight: 700; color: #1a1a1a; }
       .alarm-chevron { font-size: 11px; color: #bbb; transition: transform 0.2s; }
       .alarm-chevron.open { transform: rotate(180deg); }
-      .alarm-list { background: #fafafa; border-bottom: 1px solid #efefef; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+      .alarm-list { position: absolute; top: 57px; left: 0; right: 0; max-width: 480px; margin: 0 auto; background: #fff; border-bottom: 1px solid #efefef; box-shadow: 0 8px 24px rgba(0,0,0,0.1); max-height: 0; overflow: hidden; transition: max-height 0.3s ease; z-index: 200; }
       .alarm-list.open { max-height: 300px; overflow-y: auto; }
       .alarm-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid #f0f0f0; }
       .alarm-item:last-child { border-bottom: none; }
