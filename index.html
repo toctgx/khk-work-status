@@ -124,15 +124,12 @@
 
       <section class="screen" id="screen-admin">
         <div class="panel-title"><h2>관리자 페이지</h2><span>MONTHLY</span></div>
-        <div class="rule-tabs">
-          <button class="rule-tab" id="houseRuleBtn" type="button">하우스 룰</button>
-          <button class="rule-tab" data-rule="overwork" type="button">재택 초과</button>
-          <button class="rule-tab" data-rule="consecutive" type="button">연속 재택</button>
+        <div class="admin-tabs" id="ruleTabs">
+          <button class="admin-tab" data-rule="house" type="button">하우스 룰</button>
+          <button class="admin-tab" data-rule="overwork" type="button">재택 초과</button>
+          <button class="admin-tab" data-rule="consecutive" type="button">연속 재택</button>
         </div>
         <div class="rule-card" id="ruleCard"></div>
-        <div class="metrics-grid">
-          <div class="metric"><small>전체 인원</small><strong id="memberCount">0</strong><span>전체 팀 등록 인원</span></div>
-        </div>
         <div class="admin-tabs" id="adminTabs"></div>
         <div class="admin-list" id="adminList"></div>
       </section>
@@ -579,8 +576,18 @@
 
 
       navButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
-      document.getElementById('houseRuleBtn').addEventListener('click', () => renderRuleCard('house', monthlyList()));
-      document.querySelectorAll('[data-rule]').forEach(btn => btn.addEventListener('click', () => renderRuleCard(btn.dataset.rule, monthlyList())));
+      let currentRuleTab = null;
+      document.querySelectorAll('#ruleTabs [data-rule]').forEach(btn => btn.addEventListener('click', () => {
+        if (currentRuleTab === btn.dataset.rule) {
+          currentRuleTab = null;
+          document.querySelectorAll('#ruleTabs .admin-tab').forEach(b => b.classList.remove('active'));
+          ruleCard.classList.remove('show'); ruleCard.innerHTML = '';
+        } else {
+          currentRuleTab = btn.dataset.rule;
+          document.querySelectorAll('#ruleTabs .admin-tab').forEach(b => b.classList.toggle('active', b.dataset.rule === currentRuleTab));
+          renderRuleCard(currentRuleTab, monthlyList());
+        }
+      }));
 
       normalizeState();
       recalculateMonthlyCounts();
