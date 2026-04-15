@@ -405,7 +405,6 @@
         const chipLabel = (member) => member.status === 'timeoff' && member.timeNote ? '반반차 ' + member.timeNote : member.timeNote ? member.timeNote : displayTeam(member.team);
         teamBoard.innerHTML = members.length ? `
           <div class="list-header">
-            <span class="list-header-title">${currentView.label}</span>
             <span class="list-header-count">${members.length}명</span>
           </div>
           <div class="member-list">
