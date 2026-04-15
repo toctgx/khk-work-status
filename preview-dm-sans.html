@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>KHK Work Status Board</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap');
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(180deg, #f8f8f8 0%, #f2f2f2 100%); color: #1f1f1f; overflow: hidden; }
+      .app { max-width: 560px; margin: 0 auto; min-height: 100vh; height: 100vh; padding: 10px 10px 94px; display: flex; flex-direction: column; overflow: hidden; }
+      .hero { display: flex; justify-content: flex-end; align-items: stretch; gap: 8px; margin-bottom: 8px; flex: 0 0 auto; }
+      .today-card { padding: 12px 12px; min-width: 108px; border-radius: 18px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04); text-align: right; }
+      .today-card strong { display: block; font-size: 10px; letter-spacing: 0.16em; color: #d92d32; }
+      .today-card span { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; }
+      .glass { background: #ffffff; border: 1px solid #ececec; border-radius: 22px; box-shadow: 0 14px 24px rgba(0, 0, 0, 0.05); }
+      .screen { display: none; }
+      .screen.active { display: block; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+      .panel { padding: 14px; position: relative; }
+      .hero-metrics { display:none; }
+      .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+      .panel-title h2 { margin: 0; font-size: 17px; letter-spacing: -0.05em; }
+      .panel-title span { color: #d92d32; font-weight: 800; font-size: 11px; }
+      .field-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .status-highlight { margin-bottom: 8px; padding: 10px 12px; border-radius: 16px; background: #fff5f5; color: #8f1d22; display:flex; justify-content:space-between; align-items:center; gap:10px; border: 1px solid #ffd6d8; }
+      .status-highlight strong { font-size: 13px; letter-spacing: -0.04em; }
+      .status-highlight span { font-size: 12px; font-weight: 700; color: #d92d32; }
+      .field { margin-bottom: 8px; }
+      .field label { display: block; font-size: 12px; color: #6b6b6b; margin-bottom: 5px; }
+      .field input, .field select { width: 100%; min-height: 42px; border: 1px solid #e4e4e4; border-radius: 14px; padding: 0 12px; font: inherit; background: #ffffff; color: #1f1f1f; font-weight: 600; }
+      .btn-row { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 8px; margin-top: 8px; }
+      button { border: none; border-radius: 14px; min-height: 40px; padding: 0 12px; font: inherit; font-weight: 800; cursor: pointer; }
+      .primary { background: linear-gradient(180deg, #de2f36 0%, #cf242d 100%); color: white; }
+      .secondary { background: #f7f7f7; color: #b4232a; }
+      .helper { font-size: 11px; color: #7a7a7a; margin-top: 6px; line-height: 1.35; }
+      .team-tabs, .admin-tabs, .rule-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; margin-bottom: 8px; }
+      .team-tab, .admin-tab, .rule-tab { flex: 0 0 auto; min-height: 36px; padding: 0 14px; border-radius: 999px; background: #ffffff; color: #686868; border: 1px solid #e7e7e7; font-size: 11px; touch-action: manipulation; }
+      .team-tab.active, .admin-tab.active, .rule-tab.active { background: #d92d32; color: white; border-color: transparent; box-shadow: 0 8px 16px rgba(217,45,50,0.18); }
+      .team-card { padding: 10px; border-radius: 20px; background: #ffffff; border: 1px solid #ececec; height: 100%; overflow: hidden; }
+      .team-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+      .team-head h3 { margin: 0; font-size: 15px; letter-spacing: 0.04em; }
+      .badge { background: #fff1f2; color: #d92d32; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; }
+      .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: calc(100vh - 290px); overflow: auto; padding-right: 2px; }
+      .member { display:flex; align-items:center; justify-content:space-between; gap:8px; padding: 10px 10px; border-radius: 14px; background: #ffffff; border: 1px solid #efefef; min-height: 0; }
+      .member-main { min-width: 0; }
+      .member strong { display: block; font-size: 13px; }
+      .member-team { display: block; margin-top: 3px; font-size: 11px; color: #8a8a8a; font-weight: 700; }
+      .status-pill { display: inline-flex; align-items: center; justify-content: center; min-height: 24px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 800; white-space: nowrap; width: fit-content; }
+      .office { background: #eef7ef; color: #1f7a43; }
+      .remote { background: #fff1f2; color: #d92d32; }
+      .vacation { background: #fff3e2; color: #ba6b00; }
+      .half { background: #ffeaf0; color: #cf4376; }
+      .timeoff { background: #f4ecff; color: #6d28d9; }
+      .rule-card { display:none; margin-bottom: 8px; padding: 12px 14px; border-radius: 18px; background: #fff7f7; border: 1px solid #ffd6d8; color: #8f1d22; }
+      .rule-card.show { display:block; }
+      .rule-card strong { display:block; font-size: 14px; margin-bottom: 6px; }
+      .rule-card ul { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.5; }
+      .toast { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.96); min-width: 240px; max-width: calc(100% - 40px); padding: 18px 18px; border-radius: 18px; background: rgba(217, 45, 50, 0.96); color: #ffffff; text-align: center; font-size: 16px; font-weight: 800; box-shadow: 0 20px 36px rgba(217,45,50,0.22); opacity: 0; pointer-events: none; transition: opacity 0.18s ease, transform 0.18s ease; z-index: 99999; }
+      .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      .metrics-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+      .metric { padding: 12px; border-radius: 18px; background: #ffffff; border: 1px solid #ececec; margin-bottom: 0; }
+      .metric small { display: block; color: #7a7a7a; font-size: 11px; letter-spacing: 0.12em; }
+      .metric strong { display: block; margin-top: 4px; font-size: 22px; letter-spacing: -0.06em; }
+      .metric span { color: #7a7a7a; font-size: 13px; }
+      .admin-list { margin-top: 8px; display: none; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-y: auto; overflow-x: hidden; border-top: 1px dashed #e7cdb8; padding: 8px 2px 44px; align-content: start; scrollbar-gutter: stable both-edges; }
+      .admin-list.show { display: grid; }
+      .admin-item { display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; gap:8px; min-height: 78px; padding: 10px 10px; border-radius: 14px; background: #ffffff; border: 1px solid #ececec; }
+      .admin-item-main { min-width:0; width: 100%; }
+      .admin-item strong { display:block; font-size: 12px; margin-bottom: 0; line-height: 1.25; word-break: keep-all; }
+      .admin-item span { display:none; }
+      .admin-count { align-self:flex-end; flex:0 0 auto; min-width: 30px; text-align:center; padding: 5px 9px; border-radius: 999px; background:#fff1f2; color:#d92d32; font-size: 15px; font-weight: 800; letter-spacing: -0.03em; }
+      .empty { color: #98a2b3; font-size: 13px; }
+      .bottom-nav { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); width: calc(100% - 20px); max-width: 520px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 10px 22px rgba(0,0,0,0.06); border-radius: 22px; padding: 6px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .bottom-nav button { min-height: 52px; background: transparent; color: #7a7a7a; border-radius: 16px; font-size: 13px; line-height: 1.15; }
+      .bottom-nav button.active { background: linear-gradient(180deg, #de2f36 0%, #cf242d 100%); color: white; }
+      @media (max-width: 460px) {
+        .metrics-grid, .field-grid, .member-grid, .btn-row { grid-template-columns: 1fr; }
+        .hero { grid-template-columns: 1fr; }
+        .app { padding-bottom: 90px; }
+        .member-grid { max-height: calc(100vh - 320px); }
+        .admin-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toast" id="toast">Saved successfully.</div>
+    <div class="app">
+      <section class="hero">
+        <div class="today-card">
+          <strong>TODAY</strong>
+          <span id="todayLabel"></span>
+        </div>
+      </section>
+
+      <section class="screen active glass panel" id="screen-schedule">
+        <div class="panel-title"><h2>WORKING SCHEDULE</h2><span>UPDATE</span></div>
+        <div class="status-highlight"><strong>Save today’s work status quickly</strong><span>Kraft Heinz</span></div>
+        <div class="field-grid">
+          <div class="field"><label for="teamSelect">Team</label><select id="teamSelect"></select></div>
+          <div class="field"><label for="nameSelect">Name</label><select id="nameSelect"></select></div>
+        </div>
+        <div class="field"><label for="statusSelect">Work Status</label><select id="statusSelect"><option value="office">Office</option><option value="remote">Home</option><option value="vacation">Leave</option><option value="half-am">Half Day AM</option><option value="half-pm">Half Day PM</option><option value="timeoff">Partial Time Off (Time Note)</option></select></div>
+        <div class="field" id="timeField" style="display:none;"><label for="timeInput">Time Note</label><input id="timeInput" placeholder="e.g. 15:00~17:00" /></div>
+        <div class="btn-row"><button class="primary" id="saveBtn">Save</button><button class="secondary" id="resetBtn">Reset</button></div>
+        <div class="btn-row"><button class="secondary" id="importAprBtn">Import April Sheet</button><button class="secondary" id="applyAprTodayBtn">Apply to Today</button></div>
+        <div class="helper">Choose a team, select a name, then save the status to update immediately.</div>
+      </section>
+
+      <section class="screen glass panel" id="screen-status">
+        <div class="team-tabs" id="teamTabs"></div>
+        <div id="teamBoard"></div>
+      </section>
+
+      <section class="screen glass panel" id="screen-admin">
+        <div class="panel-title"><h2>ADMIN PAGE</h2><span>MONTHLY</span></div>
+        <div class="rule-tabs">
+          <button class="rule-tab" id="houseRuleBtn" type="button">House rule</button>
+          <button class="rule-tab" data-rule="overwork" type="button">Remote Over Limit</button>
+          <button class="rule-tab" data-rule="consecutive" type="button">Consecutive Remote</button>
+        </div>
+        <div class="rule-card" id="ruleCard"></div>
+        <div class="metrics-grid">
+          <div class="metric"><small>Total Members</small><strong id="memberCount">0</strong><span>Registered headcount across all teams</span></div>
+        </div>
+        <div class="admin-tabs" id="adminTabs"></div>
+        <div class="admin-list" id="adminList"></div>
+      </section>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="active" data-screen="screen-schedule">🗓️<br/>Schedule</button>
+      <button data-screen="screen-status">👥<br/>Status</button>
+      <button data-screen="screen-admin">📊<br/>Admin</button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+      const teams = ['RT TEAM','AFH TEAM','MKT TEAM','FINANCE TEAM','S&OP TEAM','LOGISTICS TEAM','HR TEAM','COUNTRY MANAGER'];
+      const defaultMembers = {
+        'RT TEAM': ['Alex', 'Thomas', 'Ryan', 'Hugh', 'Luca', 'Adela', 'Dami'],
+        'AFH TEAM': ['Austin', 'John', 'Dennis', 'Tom', 'Antonio'],
+        'MKT TEAM': ['Jen', 'Jimin', 'Heewon', 'Leo', 'Olivia'],
+        'FINANCE TEAM': ['Steve', 'Rachel', 'Joanne', 'Kahn'],
+        'S&OP TEAM': ['Grace', 'Sophie', 'Jessica'],
+        'LOGISTICS TEAM': ['Edward', 'Amy', 'Jane', 'Nari', 'Ryan'],
+        'HR TEAM': ['Claire'],
+        'COUNTRY MANAGER': ['YK.Lee']
+      };
+      const statusMap = {
+        office: { label: 'Office', className: 'office' },
+        remote: { label: 'Home', className: 'remote' },
+        vacation: { label: 'Leave', className: 'vacation' },
+        'half-am': { label: 'Half Day AM', className: 'half' },
+        'half-pm': { label: 'Half Day PM', className: 'half' },
+        timeoff: { label: 'Partial Time Off', className: 'timeoff' }
+      };
+      const adminViews = [
+        { key: 'remote', label: 'Home' },
+        { key: 'vacation', label: 'Leave' },
+        { key: 'halfAm', label: 'Leave (AM)' },
+        { key: 'halfPm', label: 'Leave (PM)' },
+        { key: 'timeoff', label: 'Partial Leave' }
+      ];
+      const displayTeam = (team) => team
+        .replace('RT TEAM', 'RT')
+        .replace('AFH TEAM', 'AFH')
+        .replace('MKT TEAM', 'MKT')
+        .replace('FINANCE TEAM', 'FINANCE')
+        .replace('S&OP TEAM', 'S&OP')
+        .replace('LOGISTICS TEAM', 'LOGISTICS')
+        .replace('HR TEAM', 'HR');
+      const storageKey = 'khk-work-status-demo-v7';
+      const monthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const createInitialState = () => ({
+        members: teams.reduce((acc, team) => {
+          acc[team] = defaultMembers[team].map(name => ({ name, status: 'office', timeNote: '' }));
+          return acc;
+        }, {}),
+        monthlyCounts: {},
+        dailyLogs: {},
+        importedMonthlyCounts: {},
+        lastResetDate: null
+      });
+      const initialState = createInitialState();
+      const saved = localStorage.getItem(storageKey);
+      const state = saved ? { ...createInitialState(), ...JSON.parse(saved) } : initialState;
+      let currentTeam = 'office';
+      let currentAdminTab = null;
+
+      const screens = document.querySelectorAll('.screen');
+      const navButtons = document.querySelectorAll('.bottom-nav button');
+      const teamSelect = document.getElementById('teamSelect');
+      const nameSelect = document.getElementById('nameSelect');
+      const statusSelect = document.getElementById('statusSelect');
+      const timeField = document.getElementById('timeField');
+      const timeInput = document.getElementById('timeInput');
+      const teamTabs = document.getElementById('teamTabs');
+      const teamBoard = document.getElementById('teamBoard');
+      const adminTabs = document.getElementById('adminTabs');
+      const adminList = document.getElementById('adminList');
+      const toast = document.getElementById('toast');
+      const ruleCard = document.getElementById('ruleCard');
+      let importedAprilSheet = null;
+
+      const showScreen = (id) => {
+        screens.forEach(screen => screen.classList.toggle('active', screen.id === id));
+        navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.screen === id));
+      };
+      const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(showToast.timer);
+        showToast.timer = setTimeout(() => toast.classList.remove('show'), 1200);
+      };
+      const persist = () => localStorage.setItem(storageKey, JSON.stringify(state));
+      const memberCount = () => teams.reduce((sum, team) => sum + state.members[team].length, 0);
+      const getMonthBucket = () => {
+        const key = monthKey();
+        if (!state.monthlyCounts[key]) state.monthlyCounts[key] = {};
+        return state.monthlyCounts[key];
+      };
+      const todayKey = () => {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      };
+      const previousDateKey = (dateKey) => {
+        const date = new Date(`${dateKey}T00:00:00`);
+        date.setDate(date.getDate() - 1);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      };
+      const normalizeState = () => {
+        teams.forEach(team => {
+          const currentMembers = state.members[team] || [];
+          const byName = new Map(currentMembers.map(member => [member.name, member]));
+          state.members[team] = defaultMembers[team].map(name => {
+            const existing = byName.get(name);
+            return existing
+              ? { name, status: existing.status || 'office', timeNote: existing.timeNote || '' }
+              : { name, status: 'office', timeNote: '' };
+          });
+        });
+        state.monthlyCounts ||= {};
+        state.dailyLogs ||= {};
+        state.importedMonthlyCounts ||= {};
+      };
+      const recalculateMonthlyCounts = () => {
+        state.monthlyCounts = {};
+        Object.entries(state.dailyLogs || {}).forEach(([dateKey, entries]) => {
+          const bucketKey = monthKey(new Date(`${dateKey}T00:00:00`));
+          if (!state.monthlyCounts[bucketKey]) state.monthlyCounts[bucketKey] = {};
+          Object.values(entries).forEach(({ name, team, status }) => {
+            if (status === 'office') return;
+            const id = `${team}__${name}`;
+            if (!state.monthlyCounts[bucketKey][id]) state.monthlyCounts[bucketKey][id] = { name, team, remote: 0, vacation: 0, halfAm: 0, halfPm: 0, timeoff: 0 };
+            if (status === 'remote') state.monthlyCounts[bucketKey][id].remote += 1;
+            else if (status === 'vacation') state.monthlyCounts[bucketKey][id].vacation += 1;
+            else if (status === 'half-am') state.monthlyCounts[bucketKey][id].halfAm += 1;
+            else if (status === 'half-pm') state.monthlyCounts[bucketKey][id].halfPm += 1;
+            else if (status === 'timeoff') state.monthlyCounts[bucketKey][id].timeoff += 1;
+          });
+        });
+      };
+      const logDailyStatus = (name, team, payload) => {
+        const key = todayKey();
+        if (!state.dailyLogs[key]) state.dailyLogs[key] = {};
+        state.dailyLogs[key][`${team}__${name}`] = { name, team, status: payload.status, timeNote: payload.timeNote || '', eventType: payload.eventType || '' };
+      };
+      const syncMembersWithTodayLog = () => {
+        const todayLogs = state.dailyLogs[todayKey()] || {};
+        teams.forEach(team => {
+          state.members[team] = state.members[team].map(member => {
+            const todayEntry = todayLogs[`${team}__${member.name}`];
+            return todayEntry
+              ? { ...member, status: todayEntry.status || 'office', timeNote: todayEntry.timeNote || '' }
+              : { ...member, status: 'office', timeNote: '' };
+          });
+        });
+      };
+      const resetDailyStatusesIfNeeded = () => {
+        const today = todayKey();
+        const hasTodayLog = !!state.dailyLogs?.[today] && Object.keys(state.dailyLogs[today]).length > 0;
+        if (state.lastResetDate !== today) {
+          teams.forEach(team => {
+            state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
+          });
+          state.lastResetDate = today;
+        }
+        if (hasTodayLog) {
+          syncMembersWithTodayLog();
+        }
+        persist();
+      };
+      const monthlyList = () => {
+        const imported = state.importedMonthlyCounts?.[monthKey()];
+        const source = imported && Object.keys(imported).length ? imported : getMonthBucket();
+        return Object.values(source).sort((a, b) => a.team.localeCompare(b.team) || a.name.localeCompare(b.name));
+      };
+      const weeklyRemoteLimit = () => {
+        const now = new Date();
+        const weeks = Math.ceil(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() / 7);
+        return weeks * 2;
+      };
+      const consecutiveRemoteMembers = () => {
+        const today = todayKey();
+        const prev = previousDateKey(today);
+        const todayLogs = state.dailyLogs[today] || {};
+        const prevLogs = state.dailyLogs[prev] || {};
+        return Object.keys(todayLogs)
+          .filter(id => todayLogs[id].status === 'remote' && prevLogs[id]?.status === 'remote')
+          .map(id => ({ name: todayLogs[id].name, team: todayLogs[id].team }));
+      };
+
+      const renderTeamOptions = () => {
+        teamSelect.innerHTML = teams.map(team => `<option value="${team}">${displayTeam(team)}</option>`).join('');
+      };
+      const renderNameOptions = () => {
+        const selectedTeam = teamSelect.value;
+        nameSelect.innerHTML = state.members[selectedTeam].map(member => `<option value="${member.name}">${member.name}</option>`).join('');
+      };
+      const statusViews = [
+        { key: 'office', label: 'Office', match: member => member.status === 'office' },
+        { key: 'remote', label: 'Home', match: member => member.status === 'remote' },
+        { key: 'vacation', label: 'Leave', match: member => member.status === 'vacation' },
+        { key: 'half-am', label: 'Leave (AM)', match: member => member.status === 'half-am' },
+        { key: 'half-pm', label: 'Leave (PM)', match: member => member.status === 'half-pm' },
+        { key: 'timeoff', label: 'Partial Leave', match: member => member.status === 'timeoff' }
+      ];
+      const renderTeamTabs = () => {
+        teamTabs.innerHTML = statusViews.map(view => `<button class="team-tab ${view.key === currentTeam ? 'active' : ''}" data-team="${view.key}">${view.label}</button>`).join('');
+        teamTabs.querySelectorAll('[data-team]').forEach(btn => btn.addEventListener('click', () => {
+          currentTeam = btn.dataset.team;
+          renderTeamTabs();
+          renderTeamBoard();
+        }));
+      };
+      const renderTeamBoard = () => {
+        const currentView = statusViews.find(view => view.key === currentTeam) || statusViews[0];
+        const members = teams.flatMap(team => state.members[team].map(member => ({ ...member, team }))).filter(currentView.match);
+        teamBoard.innerHTML = `
+          <section class="team-card">
+            <div class="team-head"><h3>${currentView.label}</h3><div class="badge">${members.length} people</div></div>
+            <div class="member-grid">
+              ${members.map(member => {
+                const meta = statusMap[member.status];
+                return `
+                  <div class="member">
+                    <div class="member-main">
+                      <strong>${member.name}</strong>
+                      <span class="member-team">${displayTeam(member.team)}</span>
+                    </div>
+                    <div class="status-pill ${meta.className}">${member.timeNote ? member.timeNote : displayTeam(member.team)}</div>
+                  </div>
+                `;
+              }).join('') || `<div class="admin-item"><strong>${currentView.label}</strong><span>No members in this status right now.</span><div class="admin-count">0</div></div>`}
+            </div>
+          </section>
+        `;
+      };
+      const renderAdminTabs = () => {
+        adminTabs.innerHTML = adminViews.map(tab => `<button class="admin-tab ${tab.key === currentAdminTab ? 'active' : ''}" data-admin="${tab.key}">${tab.label}</button>`).join('');
+        adminTabs.querySelectorAll('[data-admin]').forEach(btn => btn.addEventListener('click', () => {
+          currentAdminTab = currentAdminTab === btn.dataset.admin ? null : btn.dataset.admin;
+          renderAdminTabs();
+          renderAdmin();
+        }));
+      };
+      const renderRuleCard = (mode, list) => {
+        const limit = weeklyRemoteLimit();
+        const exceeded = list.filter(item => item.remote > limit);
+        const consecutive = consecutiveRemoteMembers();
+        if (mode === 'house') {
+          ruleCard.classList.add('show');
+          ruleCard.innerHTML = `<strong>House Rule</strong><ul><li>Home work is limited to 2 days per week by default.</li><li>If monthly home counts exceed the limit, it will appear in the admin review.</li><li>Home work cannot be registered for 2 consecutive days.</li></ul>`;
+          return;
+        }
+        if (mode === 'overwork') {
+          ruleCard.classList.add('show');
+          ruleCard.innerHTML = exceeded.length
+            ? `<strong>Home Over Limit</strong><ul>${exceeded.map(item => `<li>${item.name} (${displayTeam(item.team)}) - ${item.remote} times</li>`).join('')}</ul>`
+            : `<strong>Home Over Limit</strong><ul><li>There are no members over the limit right now.</li></ul>`;
+          return;
+        }
+        if (mode === 'consecutive') {
+          ruleCard.classList.add('show');
+          ruleCard.innerHTML = consecutive.length
+            ? `<strong>Consecutive Home</strong><ul>${consecutive.map(item => `<li>${item.name} (${displayTeam(item.team)})</li>`).join('')}</ul>`
+            : `<strong>Consecutive Home</strong><ul><li>There are no consecutive home members right now.</li></ul>`;
+          return;
+        }
+        ruleCard.classList.remove('show');
+        ruleCard.innerHTML = '';
+      };
+      const renderAdmin = () => {
+        const list = monthlyList();
+        const filtered = currentAdminTab ? list.filter(item => item[currentAdminTab] > 0) : [];
+        document.getElementById('memberCount').textContent = memberCount();
+        if (!currentAdminTab) {
+          adminList.classList.remove('show');
+          adminList.innerHTML = '';
+          return;
+        }
+        adminList.classList.add('show');
+        adminList.innerHTML = filtered.length ? filtered.map(item => `
+          <div class="admin-item">
+            <div class="admin-item-main">
+              <strong>${item.name}</strong>
+            </div>
+            <div class="admin-count">${item[currentAdminTab]}</div>
+          </div>
+        `).join('') : `<div class="admin-item"><div class="admin-item-main"><strong>0</strong></div><div class="admin-count">0</div></div>`;
+        adminList.scrollTop = 0;
+      };
+      const parseImportedStatus = (raw) => {
+        const value = String(raw || '').trim();
+        if (!value) return null;
+        if (value === 'O') return { status: 'office', timeNote: '', eventType: '' };
+        if (value === 'H') return { status: 'remote', timeNote: '', eventType: '' };
+        if (value === 'D') return { status: 'vacation', timeNote: '', eventType: 'leave' };
+        if (/^D\((오전|AM)\)$/i.test(value)) return { status: 'half-am', timeNote: '', eventType: 'leave_am' };
+        if (/^D\((오후|PM)\)$/i.test(value) || /^D오후\)?$/i.test(value)) return { status: 'half-pm', timeNote: '', eventType: 'leave_pm' };
+        if (/^D[(/]/.test(value) || /^D\(/.test(value)) return { status: 'vacation', timeNote: '', eventType: 'leave' };
+        return { status: 'office', timeNote: value, eventType: 'office_event' };
+      };
+      const teamAliases = {
+        Alex: 'RT TEAM', Thomas: 'RT TEAM', Ryan: 'RT TEAM', Hugh: 'RT TEAM', Luca: 'RT TEAM', Adela: 'RT TEAM', Lilly: 'RT TEAM',
+        Austin: 'AFH TEAM', Antonio: 'AFH TEAM', 'John.P': 'AFH TEAM', Dennis: 'AFH TEAM', Tom: 'AFH TEAM',
+        Jen: 'MKT TEAM', Jimin: 'MKT TEAM', Leo: 'MKT TEAM', Heewon: 'MKT TEAM', Olivia: 'MKT TEAM',
+        Steve: 'FINANCE TEAM', Rachel: 'FINANCE TEAM', Joanne: 'FINANCE TEAM', Khan: 'FINANCE TEAM', Claire: 'HR TEAM',
+        Grace: 'S&OP TEAM', Jessica: 'S&OP TEAM', Sophie: 'S&OP TEAM',
+        Edward: 'LOGISTICS TEAM', Amy: 'LOGISTICS TEAM', Jane: 'LOGISTICS TEAM', Nari: 'LOGISTICS TEAM'
+      };
+      const normalizeImportedName = (name) => {
+        if (name === 'John.P') return 'John';
+        if (name === 'Khan') return 'Kahn';
+        if (name === 'Lilly') return 'Dami';
+        return name;
+      };
+      const importAprilSheet = async () => {
+        const response = await fetch('./assets/working_schedule_apr.xlsx');
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        importedAprilSheet = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+        showToast('April sheet imported.');
+      };
+      const findSectionHeaderRow = (sheetRows, todayDate) => {
+        for (let i = 0; i < sheetRows.length; i += 1) {
+          const row = sheetRows[i] || [];
+          if (row[1] === 'Working Hours' && row[2] === 'Name') {
+            const dayColumn = row.findIndex(cell => Number(cell) === todayDate);
+            if (dayColumn !== -1) return { headerRowIndex: i, dayColumn };
+          }
+        }
+        return null;
+      };
+      const rebuildImportedMonthlyCounts = () => {
+        const bucketKey = monthKey();
+        state.importedMonthlyCounts[bucketKey] = {};
+        importedAprilSheet.forEach((row, index) => {
+          if (index < 6) return;
+          const rawName = row?.[2];
+          if (!rawName || rawName === 'Name' || rawName === 'TTL by Day') return;
+          if (!teamAliases[rawName]) return;
+          const team = teamAliases[rawName];
+          const name = normalizeImportedName(rawName);
+          const id = `${team}__${name}`;
+          if (!state.importedMonthlyCounts[bucketKey][id]) state.importedMonthlyCounts[bucketKey][id] = { name, team, remote: 0, vacation: 0, halfAm: 0, halfPm: 0, timeoff: 0 };
+          for (let col = 5; col < row.length; col += 1) {
+            const parsed = parseImportedStatus(row[col]);
+            if (!parsed) continue;
+            if (parsed.status === 'remote') state.importedMonthlyCounts[bucketKey][id].remote += 1;
+            else if (parsed.status === 'vacation') state.importedMonthlyCounts[bucketKey][id].vacation += 1;
+            else if (parsed.status === 'half-am') state.importedMonthlyCounts[bucketKey][id].halfAm += 1;
+            else if (parsed.status === 'half-pm') state.importedMonthlyCounts[bucketKey][id].halfPm += 1;
+            else if (parsed.status === 'timeoff') state.importedMonthlyCounts[bucketKey][id].timeoff += 1;
+          }
+        });
+      };
+      const applyImportedSheetToToday = () => {
+        if (!importedAprilSheet) {
+          showToast('Import the April sheet first.');
+          return;
+        }
+        const todayDate = new Date().getDate();
+        const headerInfo = findSectionHeaderRow(importedAprilSheet, todayDate);
+        if (!headerInfo) {
+          showToast('Today was not found in the April sheet.');
+          return;
+        }
+        const { dayColumn } = headerInfo;
+        const today = todayKey();
+        state.dailyLogs[today] = {};
+        teams.forEach(team => {
+          state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
+        });
+        let appliedCount = 0;
+        importedAprilSheet.forEach((row, index) => {
+          if (index < 6) return;
+          const rawName = row?.[2];
+          if (!rawName || rawName === 'Name' || rawName === 'TTL by Day') return;
+          if (!teamAliases[rawName]) return;
+          const parsed = parseImportedStatus(row[dayColumn]);
+          if (!parsed) return;
+          const team = teamAliases[rawName];
+          const name = normalizeImportedName(rawName);
+          const member = state.members[team]?.find(item => item.name === name);
+          if (!member) return;
+          member.status = parsed.status;
+          member.timeNote = parsed.timeNote || '';
+          state.dailyLogs[today][`${team}__${member.name}`] = { name: member.name, team, status: parsed.status, timeNote: parsed.timeNote || '', eventType: parsed.eventType || '' };
+          appliedCount += 1;
+        });
+        state.lastResetDate = today;
+        rebuildImportedMonthlyCounts();
+        recalculateMonthlyCounts();
+        persist();
+        renderTeamTabs();
+        renderTeamBoard();
+        renderAdminTabs();
+        renderAdmin();
+        const remoteCount = teams.flatMap(team => state.members[team]).filter(member => member.status === 'remote').length;
+        showToast(`Applied ${appliedCount} entries, Home ${remoteCount}.`);
+      };
+      const updateToday = () => {
+        const now = new Date();
+        document.getElementById('todayLabel').textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+      };
+      const saveStatus = () => {
+        const team = teamSelect.value;
+        const name = nameSelect.value;
+        const status = statusSelect.value;
+        const timeNote = timeInput.value.trim();
+        if (!name) return;
+        const member = state.members[team].find(item => item.name === name);
+        if (!member) return;
+        member.status = status;
+        member.timeNote = status === 'timeoff' ? timeNote : '';
+        logDailyStatus(name, team, status === 'timeoff' ? { status, timeNote } : { status, timeNote: '' });
+        recalculateMonthlyCounts();
+        persist();
+        timeInput.value = '';
+        renderTeamTabs();
+        renderTeamBoard();
+        renderAdminTabs();
+        renderAdmin();
+        showToast('Saved successfully.');
+        setTimeout(() => showScreen('screen-status'), 350);
+      };
+
+      statusSelect.addEventListener('change', () => {
+        timeField.style.display = statusSelect.value === 'timeoff' ? 'block' : 'none';
+      });
+      teamSelect.addEventListener('change', renderNameOptions);
+      document.getElementById('saveBtn').addEventListener('click', saveStatus);
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        localStorage.removeItem(storageKey);
+        location.reload();
+      });
+      document.getElementById('importAprBtn').addEventListener('click', importAprilSheet);
+      document.getElementById('applyAprTodayBtn').addEventListener('click', applyImportedSheetToToday);
+      navButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+      document.getElementById('houseRuleBtn').addEventListener('click', () => renderRuleCard('house', monthlyList()));
+      document.querySelectorAll('[data-rule]').forEach(btn => btn.addEventListener('click', () => renderRuleCard(btn.dataset.rule, monthlyList())));
+
+      normalizeState();
+      recalculateMonthlyCounts();
+      resetDailyStatusesIfNeeded();
+      renderTeamOptions();
+      renderNameOptions();
+      renderTeamTabs();
+      renderTeamBoard();
+      renderAdminTabs();
+      renderAdmin();
+      updateToday();
+
+      // Auto-apply April sheet on load if today hasn't been applied yet
+      const autoApplySheetIfNeeded = async () => {
+        const today = todayKey();
+        const alreadyApplied = state.dailyLogs?.[today] && Object.keys(state.dailyLogs[today]).length > 0;
+        if (alreadyApplied) return; // already applied today, skip
+        try {
+          const response = await fetch('./assets/working_schedule_apr.xlsx');
+          if (!response.ok) return;
+          const buffer = await response.arrayBuffer();
+          const workbook = XLSX.read(buffer, { type: 'array' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          importedAprilSheet = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+          const todayDate = new Date().getDate();
+          const headerInfo = findSectionHeaderRow(importedAprilSheet, todayDate);
+          if (!headerInfo) return; // today not in sheet, skip silently
+          const { dayColumn } = headerInfo;
+          state.dailyLogs[today] = {};
+          teams.forEach(team => {
+            state.members[team] = state.members[team].map(member => ({ ...member, status: 'office', timeNote: '' }));
+          });
+          importedAprilSheet.forEach((row, index) => {
+            if (index < 6) return;
+            const rawName = row?.[2];
+            if (!rawName || rawName === 'Name' || rawName === 'TTL by Day') return;
+            if (!teamAliases[rawName]) return;
+            const parsed = parseImportedStatus(row[dayColumn]);
+            if (!parsed) return;
+            const team = teamAliases[rawName];
+            const name = normalizeImportedName(rawName);
+            const member = state.members[team]?.find(item => item.name === name);
+            if (!member) return;
+            member.status = parsed.status;
+            member.timeNote = parsed.timeNote || '';
+            state.dailyLogs[today][`${team}__${member.name}`] = { name: member.name, team, status: parsed.status, timeNote: parsed.timeNote || '', eventType: parsed.eventType || '' };
+          });
+          state.lastResetDate = today;
+          rebuildImportedMonthlyCounts();
+          recalculateMonthlyCounts();
+          persist();
+          renderTeamTabs();
+          renderTeamBoard();
+          renderAdminTabs();
+          renderAdmin();
+          showToast('Auto-applied today\'s schedule.');
+        } catch (e) {
+          // silently fail — sheet might not exist or network issue
+        }
+      };
+      autoApplySheetIfNeeded();
+    </script>
+  </body>
+</html>
