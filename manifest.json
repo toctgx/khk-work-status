@@ -1,6 +1,6 @@
 {
-  "name": "에드워드가만듬",
-  "short_name": "에드워드가만듬",
+  "name": "Working Schedule",
+  "short_name": "Working Schedule",
   "description": "Kraft Heinz Korea 근무 현황 보드",
   "start_url": "/kraftheinz-working-schedule/",
   "scope": "/kraftheinz-working-schedule/",
