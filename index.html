@@ -17,7 +17,7 @@
       .today-card span { display: block; margin-top: 4px; font-size: 12px; font-weight: 700; }
       .glass { background: #ffffff; border: 1px solid #ececec; border-radius: 22px; box-shadow: 0 14px 24px rgba(0, 0, 0, 0.05); }
       .screen { display: none; }
-      .screen.active { display: block; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+      .screen.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
       .panel { padding: 14px; position: relative; }
       .hero-metrics { display:none; }
       .panel-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -44,7 +44,7 @@
       .team-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
       .team-head h3 { margin: 0; font-size: 15px; letter-spacing: 0.04em; }
       .badge { background: #fff1f2; color: #d92d32; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; }
-      .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: calc(100vh - 290px); overflow: auto; padding-right: 2px; }
+      .member-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; overflow: auto; padding-right: 2px; }
       .member { display:flex; align-items:center; justify-content:space-between; gap:8px; padding: 10px 10px; border-radius: 14px; background: #ffffff; border: 1px solid #efefef; min-height: 0; }
       .member-main { min-width: 0; }
       .member strong { display: block; font-size: 13px; }
@@ -66,13 +66,14 @@
       .metric small { display: block; color: #7a7a7a; font-size: 11px; letter-spacing: 0.12em; }
       .metric strong { display: block; margin-top: 4px; font-size: 22px; letter-spacing: -0.06em; }
       .metric span { color: #7a7a7a; font-size: 13px; }
-      .admin-list { margin-top: 8px; display: none; gap: 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-y: auto; overflow-x: hidden; border-top: 1px dashed #e7cdb8; padding: 8px 2px 44px; align-content: start; scrollbar-gutter: stable both-edges; }
+      .admin-list { margin-top: 8px; display: none; gap: 6px; grid-template-columns: 1fr; overflow-y: auto; overflow-x: hidden; border-top: 1px dashed #e7cdb8; padding: 8px 2px 8px; align-content: start; scrollbar-gutter: stable both-edges; }
       .admin-list.show { display: grid; }
-      .admin-item { display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; gap:8px; min-height: 78px; padding: 10px 10px; border-radius: 14px; background: #ffffff; border: 1px solid #ececec; }
-      .admin-item-main { min-width:0; width: 100%; }
-      .admin-item strong { display:block; font-size: 12px; margin-bottom: 0; line-height: 1.25; word-break: keep-all; }
+      .admin-item { display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:8px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1px solid #ececec; }
+      .admin-item-main { min-width:0; flex: 1; }
+      .admin-item strong { display:block; font-size: 13px; margin-bottom: 0; line-height: 1.25; word-break: keep-all; }
+      .admin-item-team { font-size: 11px; color: #8a8a8a; font-weight: 600; margin-top: 2px; }
       .admin-item span { display:none; }
-      .admin-count { align-self:flex-end; flex:0 0 auto; min-width: 30px; text-align:center; padding: 5px 9px; border-radius: 999px; background:#fff1f2; color:#d92d32; font-size: 15px; font-weight: 800; letter-spacing: -0.03em; }
+      .admin-count { flex:0 0 auto; min-width: 28px; text-align:center; padding: 4px 8px; border-radius: 999px; background:#fff1f2; color:#d92d32; font-size: 13px; font-weight: 800; letter-spacing: -0.03em; }
       .empty { color: #98a2b3; font-size: 13px; }
       .bottom-nav { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); width: calc(100% - 20px); max-width: 520px; background: #ffffff; border: 1px solid #ececec; box-shadow: 0 10px 22px rgba(0,0,0,0.06); border-radius: 22px; padding: 6px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
       .bottom-nav button { min-height: 52px; background: transparent; color: #7a7a7a; border-radius: 16px; font-size: 13px; line-height: 1.15; }
@@ -407,10 +408,11 @@
           <div class="admin-item">
             <div class="admin-item-main">
               <strong>${item.name}</strong>
+              <div class="admin-item-team">${displayTeam(item.team)}</div>
             </div>
-            <div class="admin-count">${item[currentAdminTab]}</div>
+            <div class="admin-count">${item[currentAdminTab]}일</div>
           </div>
-        `).join('') : `<div class="admin-item"><div class="admin-item-main"><strong>0</strong></div><div class="admin-count">0</div></div>`;
+        `).join('') : `<div class="admin-item"><div class="admin-item-main"><strong>해당 없음</strong></div><div class="admin-count">0</div></div>`;
         adminList.scrollTop = 0;
       };
       const parseImportedStatus = (raw) => {
