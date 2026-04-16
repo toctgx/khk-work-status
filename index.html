@@ -533,18 +533,33 @@
           el.innerHTML=`<div class="day-detail-card"><div class="day-detail-title">4월 ${d}일 (${dow})</div><div style="color:#aaa;font-size:13px;">주말 또는 데이터 없음</div></div>`;
           return;
         }
+        const statusLabel = s => {
+          if (s === 'O') return '오피스';
+          if (s === 'H') return '재택';
+          if (s === 'D' || s === 'D(대휴)' || s === 'D(대체)') return '휴가';
+          if (s.includes('오전') || s === 'D(오전)') return '오전반차';
+          if (s.includes('오후') || s === 'D(오후)') return '오후반차';
+          if (s.startsWith('D')) return '휴가';
+          return s;
+        };
         const home = data.filter(p=>p.status==='H');
-        const off = data.filter(p=>p.status.startsWith('D'));
+        const vacation = data.filter(p=>p.status==='D'||p.status==='D(대휴)'||p.status==='D(대체)');
+        const halfAm = data.filter(p=>p.status.includes('오전')||p.status==='D(오전)');
+        const halfPm = data.filter(p=>p.status.includes('오후')||p.status==='D(오후)');
+        const otherOff = data.filter(p=>p.status.startsWith('D')&&!vacation.includes(p)&&!halfAm.includes(p)&&!halfPm.includes(p));
         const special = data.filter(p=>!['O','H'].includes(p.status)&&!p.status.startsWith('D'));
         const office = data.filter(p=>p.status==='O');
-        const sec = (label, arr, cls, showStatus=false) =>
-          arr.length ? `<div class="day-section"><div class="day-section-label">${label} ${arr.length}명</div><div class="day-chips">${arr.map(p=>`<span class="day-chip ${cls}">${p.name}${showStatus?` <span style="font-size:10px;opacity:.8">(${p.status})</span>`:''}</span>`).join('')}</div></div>` : '';
+        const sec = (label, arr, cls) =>
+          arr.length ? `<div class="day-section"><div class="day-section-label">${label} ${arr.length}명</div><div class="day-chips">${arr.map(p=>`<span class="day-chip ${cls}">${p.name}</span>`).join('')}</div></div>` : '';
         el.style.display='block';
         el.innerHTML=`<div class="day-detail-card">
           <div class="day-detail-title">4월 ${d}일 (${dow})</div>
           ${sec('🏠 재택근무',home,'chip-home')}
-          ${sec('🌴 휴가/반차',off,'chip-off',true)}
-          ${sec('📌 기타',special,'chip-special',true)}
+          ${sec('휴가',vacation,'chip-off')}
+          ${sec('오전반차',halfAm,'chip-off')}
+          ${sec('오후반차',halfPm,'chip-off')}
+          ${otherOff.length ? `<div class="day-section"><div class="day-section-label">반차/기타 ${otherOff.length}명</div><div class="day-chips">${otherOff.map(p=>`<span class="day-chip chip-off">${p.name} <span style="font-size:10px;opacity:.7">(${p.status})</span></span>`).join('')}</div></div>` : ''}
+          ${sec('📌 기타',special,'chip-special')}
           ${sec('🏢 오피스',office,'chip-office')}
         </div>`;
       }
