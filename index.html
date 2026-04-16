@@ -73,6 +73,7 @@
       .chip-vacation { background: #fff3e2; color: #ba6b00; }
       .chip-half { background: #ffeaf0; color: #cf4376; }
       .chip-timeoff { background: #f4ecff; color: #6d28d9; }
+      .chip-fieldwork { background: #e8f5e9; color: #2e7d32; }
       .list-header { display: flex; justify-content: space-between; align-items: center; padding: 0 2px 10px; }
       .list-header-title { font-size: 15px; font-weight: 800; color: #1a1a1a; }
       .list-header-count { font-size: 13px; font-weight: 700; color: #d92d32; }
@@ -235,7 +236,7 @@
               <div class="field"><label for="teamSelect">TEAM</label><select id="teamSelect"></select></div>
               <div class="field"><label for="nameSelect">NAME</label><select id="nameSelect"></select></div>
             </div>
-            <div class="field"><label for="statusSelect">STATUS</label><select id="statusSelect"><option value="office">오피스</option><option value="remote">재택근무</option><option value="vacation">휴가</option><option value="half-am">오전 반차</option><option value="half-pm">오후 반차</option><option value="timeoff">반반차</option></select></div>
+            <div class="field"><label for="statusSelect">STATUS</label><select id="statusSelect"><option value="office">오피스</option><option value="remote">재택근무</option><option value="vacation">휴가</option><option value="half-am">오전 반차</option><option value="half-pm">오후 반차</option><option value="timeoff">반반차</option><option value="fieldwork">외근</option></select></div>
             <div class="field" id="timeField" style="display:none;"><label for="timeInput">시간 메모</label><input id="timeInput" placeholder="예: 15:00~17:00" /></div>
             <button class="save-btn" id="saveBtn">저장</button>
           </div>
@@ -421,7 +422,7 @@
         if (id === 'screen-admin') { const sa = document.getElementById('adminScrollArea'); if(sa) sa.scrollTop = 0; }
       };
       // 알람 로직
-      const statusLabels = { office: '오피스', remote: '재택근무', vacation: '휴가', 'half-am': '오전 반차', 'half-pm': '오후 반차', timeoff: '반반차' };
+      const statusLabels = { office: '오피스', remote: '재택근무', vacation: '휴가', 'half-am': '오전 반차', 'half-pm': '오후 반차', timeoff: '반반차', fieldwork: '외근' };
       let alarmLogs = JSON.parse(localStorage.getItem(alarmKey) || '[]');
       let alarmOpen = false;
 
@@ -689,11 +690,11 @@
           renderTeamBoard();
         }));
       };
-      const chipClass = { office: 'chip-office', remote: 'chip-remote', vacation: 'chip-vacation', 'half-am': 'chip-half', 'half-pm': 'chip-half', timeoff: 'chip-timeoff' };
+      const chipClass = { office: 'chip-office', remote: 'chip-remote', vacation: 'chip-vacation', 'half-am': 'chip-half', 'half-pm': 'chip-half', timeoff: 'chip-timeoff', fieldwork: 'chip-fieldwork' };
       const renderTeamBoard = () => {
         const currentView = statusViews.find(view => view.key === currentTeam) || statusViews[0];
         const members = teams.flatMap(team => state.members[team].map(member => ({ ...member, team }))).filter(currentView.match);
-        const chipLabel = (member) => member.status === 'timeoff' && member.timeNote ? '반반차 ' + member.timeNote : member.timeNote ? member.timeNote : displayTeam(member.team);
+        const chipLabel = (member) => member.status === 'timeoff' && member.timeNote ? '반반차 ' + member.timeNote : member.status === 'fieldwork' ? '외근' : member.timeNote ? member.timeNote : displayTeam(member.team);
         teamBoard.innerHTML = members.length ? `
           <div class="list-header">
             <span class="list-header-count">${members.length}명</span>
