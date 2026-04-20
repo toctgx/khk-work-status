@@ -382,6 +382,41 @@
         .replace('LOGISTICS TEAM', 'LOGISTICS')
         .replace('HR TEAM', 'HR');
       const storageKey = 'khk-work-status-demo-v7';
+      const SHEETS_API = 'https://script.google.com/macros/s/AKfycbxH8gbG379B0_1laCvTXAY2-gKbOw6OQXndL8DcdlpeaV5mv0kRbw_H08CwPNDftwVR/exec';
+
+      // 구글 시트에서 데이터 경료
+      const syncFromSheets = async () => {
+        try {
+          const res = await fetch(SHEETS_API);
+          const json = await res.json();
+          if (!json.ok || !json.data || !Object.keys(json.data).length) return;
+          teams.forEach(team => {
+            const sheetMembers = json.data[team];
+            if (!sheetMembers) return;
+            state.members[team] = state.members[team].map(m => {
+              const found = sheetMembers.find(s => s.name === m.name);
+              return found ? { ...m, status: found.status, timeNote: found.timeNote || '' } : m;
+            });
+          });
+          persist();
+          renderTeamTabs();
+          renderTeamBoard();
+        } catch(e) { console.warn('Sheets sync failed', e); }
+      };
+
+      // 구글 시트에 데이터 저장
+      const syncToSheets = async () => {
+        try {
+          const payload = {};
+          teams.forEach(team => {
+            payload[team] = state.members[team].map(m => ({ name: m.name, status: m.status, timeNote: m.timeNote || '' }));
+          });
+          await fetch(SHEETS_API, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+        } catch(e) { console.warn('Sheets save failed', e); }
+      };
       const alarmKey = 'khk-alarm-log-v1';
       const monthKey = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const createInitialState = () => ({
@@ -914,6 +949,7 @@
         logDailyStatus(name, team, status === 'timeoff' ? { status, timeNote } : { status, timeNote: '' });
         recalculateMonthlyCounts();
         persist();
+        syncToSheets();
         addAlarm(name, status, timeNote);
         timeInput.value = '';
         renderTeamTabs();
@@ -1099,6 +1135,10 @@
       };
       checkUpdate();
       setInterval(checkUpdate, 5 * 60 * 1000);
+
+      // 구글 시트 연동 — 시작 시 + 1분마다 동기화
+      syncFromSheets();
+      setInterval(syncFromSheets, 60 * 1000);
     </script>
   </body>
 </html>
