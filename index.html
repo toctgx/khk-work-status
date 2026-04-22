@@ -561,16 +561,18 @@
         for (let i = 0; i < firstDow; i++) html += `<div class="cal-day empty"></div>`;
         for (let d = 1; d <= daysInMonth; d++) {
           const dow = (firstDow + d - 1) % 7;
-          const data = scheduleData?.[String(d)] || [];
+          const isWeekend = dow===0 || dow===6;
+          const data = (!isWeekend && scheduleData?.[String(d)]) ? scheduleData[String(d)] : [];
           const homeCount = data.filter(p=>p.status==='H').length;
           const offCount = data.filter(p=>p.status.startsWith('D')).length;
           let cls = 'cal-day';
           if (dow===0) cls+=' sun'; if (dow===6) cls+=' sat';
+          if (isWeekend) cls+=' weekend-off';
           if (d===todayDay) cls+=' today';
           else if (d===selectedDay) cls+=' selected';
           let dots = '';
-          if (homeCount>0) dots+=`<div class="cal-dot dot-home"></div>`;
-          if (offCount>0) dots+=`<div class="cal-dot dot-off"></div>`;
+          if (!isWeekend && homeCount>0) dots+=`<div class="cal-dot dot-home"></div>`;
+          if (!isWeekend && offCount>0) dots+=`<div class="cal-dot dot-off"></div>`;
           html+=`<div class="${cls}" onclick="selectDay(${d})">
             <span class="cal-day-num">${d}</span>
             <div class="cal-dots">${dots}</div>
@@ -589,12 +591,18 @@
 
       function renderDayDetail(d) {
         const el = document.getElementById('dayDetail');
-        const data = scheduleData?.[String(d)] || [];
         const DOW_KO = ['일','월','화','수','목','금','토'];
         const dow = DOW_KO[new Date(2026,3,d).getDay()];
+        const isWeekend = (new Date(2026,3,d).getDay()===0 || new Date(2026,3,d).getDay()===6);
+        if (isWeekend) {
+          el.style.display='block';
+          el.innerHTML=`<div class="day-detail-card"><div class="day-detail-title">4월 ${d}일 (${dow})</div><div style="color:#aaa;font-size:13px;">주말입니다 🎉</div></div>`;
+          return;
+        }
+        const data = scheduleData?.[String(d)] || [];
         if (!data.length) {
           el.style.display='block';
-          el.innerHTML=`<div class="day-detail-card"><div class="day-detail-title">4월 ${d}일 (${dow})</div><div style="color:#aaa;font-size:13px;">주말 또는 데이터 없음</div></div>`;
+          el.innerHTML=`<div class="day-detail-card"><div class="day-detail-title">4월 ${d}일 (${dow})</div><div style="color:#aaa;font-size:13px;">데이터 없음</div></div>`;
           return;
         }
         const statusLabel = s => {
