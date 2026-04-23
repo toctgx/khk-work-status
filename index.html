@@ -533,6 +533,7 @@
       };
 
       async function loadCalendarData() {
+        document.getElementById('calendarView').innerHTML = '<div style="text-align:center;padding:60px 0;color:#bbb;font-size:14px;font-weight:600;">Loading ...</div>';
         try {
           const res = await fetch(SHEETS_API + '?v=' + Date.now());
           const json = await res.json();
