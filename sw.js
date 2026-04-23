@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khk-schedule-v2';
+const CACHE_NAME = 'khk-schedule-v3';
 const ASSETS = [
   '/kraftheinz-working-schedule/',
   '/kraftheinz-working-schedule/index.html',
