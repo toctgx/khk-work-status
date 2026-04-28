@@ -413,14 +413,16 @@
           const res = await fetch(SHEETS_API);
           const json = await res.json();
           if (!json.ok || !json.data || !Object.keys(json.data).length) return;
+          // 팀명 무관하게 이름으로 직접 매칭 (merged cell/팀명 불일치 문제 해결)
+          const sheetStatusByName = {};
+          Object.values(json.data).forEach(members => {
+            members.forEach(m => { sheetStatusByName[m.name] = m; });
+          });
+          const statusMap2 = { home: 'remote', dayoff: 'vacation', office: 'office', special: 'special' };
           teams.forEach(team => {
-            const sheetMembers = json.data[team];
-            if (!sheetMembers) return;
             state.members[team] = state.members[team].map(m => {
-              const found = sheetMembers.find(s => s.name === m.name);
+              const found = sheetStatusByName[m.name];
               if (!found) return m;
-              // Apps Script status → 앱 내부 status 매핑
-              const statusMap2 = { home: 'remote', dayoff: 'vacation', office: 'office', special: 'special' };
               const mappedStatus = statusMap2[found.status] || 'office';
               const mappedNote = found.status === 'special' ? found.timeNote : (found.timeNote || '');
               return { ...m, status: mappedStatus, timeNote: mappedNote };
