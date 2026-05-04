@@ -419,6 +419,14 @@
           const calToday = json.calendar && json.calendar[todayDay];
           if (!calToday || !calToday.length) return;
 
+          // API 이름 → 앱 내부 이름 변환 (임포트 코드와 동일)
+          const normalizeApiName = (n) => {
+            if (n === 'John.P') return 'John';
+            if (n === 'Khan') return 'Kahn';
+            if (n === 'Lilly') return 'Dami';
+            return n;
+          };
+
           // Apps Script parseRaw 결과와 동일한 파싱
           const sheetStatusByName = {};
           calToday.forEach(m => {
@@ -436,7 +444,8 @@
             } else if (raw && raw !== 'O') {
               st = 'special'; note = raw;
             }
-            sheetStatusByName[m.name] = { status: st, timeNote: note };
+            const appName = normalizeApiName(m.name);
+            sheetStatusByName[appName] = { status: st, timeNote: note };
           });
 
           if (!Object.keys(sheetStatusByName).length) return;
