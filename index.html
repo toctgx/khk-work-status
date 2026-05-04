@@ -410,36 +410,34 @@
       // 구글 시트에서 데이터 경료
       const syncFromSheets = async () => {
         try {
-          const res = await fetch(SHEETS_API);
+          const res = await fetch(SHEETS_API + '?v=' + Date.now());
           const json = await res.json();
           if (!json.ok) return;
 
-          // calendar[오늘날짜]로 전원 상태 읽기 (data는 merged cell 버그로 1명만 반환됨)
+          // calendar[오늘날짜]로 전원 상태 읽기 (캘린더 페이지와 동일한 방식)
           const todayDay = String(new Date().getDate());
           const calToday = json.calendar && json.calendar[todayDay];
+          if (!calToday || !calToday.length) return;
 
+          // Apps Script parseRaw 결과와 동일한 파싱
           const sheetStatusByName = {};
-          if (calToday && calToday.length) {
-            // calendar 형식: { name, status: 'O'|'H'|'D'|..., raw }
-            const calMap = { 'O': 'office', 'H': 'home', 'D': 'dayoff' };
-            calToday.forEach(m => {
-              const raw = m.raw || m.status || '';
-              let st = 'office', note = '';
-              if (raw === 'H') { st = 'home'; }
-              else if (raw.charAt(0) === 'D') {
-                st = 'dayoff';
-                const nm = raw.match(/[/(]([^/)]+)[/)]/);
-                note = nm ? nm[1] : (raw.length > 1 ? raw.slice(1).trim() : '');
-              } else if (raw && raw !== 'O') { st = 'special'; note = raw; }
-              sheetStatusByName[m.name] = { status: st, timeNote: note };
-            });
-          } else if (json.data && Object.keys(json.data).length) {
-            // fallback: data 사용 (팀명 무관 이름 매칭)
-            const statusMap2 = { home: 'home', dayoff: 'dayoff', office: 'office', special: 'special' };
-            Object.values(json.data).forEach(members => {
-              members.forEach(m => { sheetStatusByName[m.name] = m; });
-            });
-          }
+          calToday.forEach(m => {
+            const raw = (m.raw !== undefined && m.raw !== '') ? m.raw : (m.status || '');
+            let st = 'office', note = '';
+            if (raw === 'H') {
+              st = 'home';
+            } else if (raw.charAt(0) === 'D') {
+              st = 'dayoff';
+              const slashIdx = raw.indexOf('/');
+              const parenMatch = raw.match(/\(([^)]+)\)/);
+              if (slashIdx !== -1) note = raw.slice(slashIdx + 1).trim();
+              else if (parenMatch) note = parenMatch[1];
+              else if (raw.length > 1) note = raw.slice(1).trim();
+            } else if (raw && raw !== 'O') {
+              st = 'special'; note = raw;
+            }
+            sheetStatusByName[m.name] = { status: st, timeNote: note };
+          });
 
           if (!Object.keys(sheetStatusByName).length) return;
 
